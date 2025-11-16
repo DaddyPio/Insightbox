@@ -12,7 +12,7 @@ type Inspiration = {
   content_json: {
     title?: string;
     message?: string;
-    song?: { title?: string; artist?: string; reason?: string };
+    song?: { title?: string; artist?: string; youtube_url?: string; reason?: string };
   };
 };
 
@@ -220,6 +220,20 @@ export default function DailyPage() {
                     <div>
                       🎵 {inspiration.content_json.song.title} —{' '}
                       {inspiration.content_json.song.artist}
+                      {inspiration.content_json.song.youtube_url && (
+                        <>
+                          {' '}
+                          ·{' '}
+                          <a
+                            href={inspiration.content_json.song.youtube_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            YouTube
+                          </a>
+                        </>
+                      )}
                     </div>
                     {inspiration.content_json.song.reason && (
                       <div className="opacity-80 mt-1 px-6">

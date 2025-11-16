@@ -5,14 +5,23 @@ import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 import { format } from 'date-fns';
 
 const SYSTEM_PROMPT = `
-You are a warm, wood-tone, mature life coach. Speak concisely but poetically.
-Output JSON ONLY with keys: title, message, song { title, artist, reason }.
-Tone requirements:
-- Warm, grounded, hopeful, wooden aesthetic
-- Encourage gentle action and self-reflection
-- Avoid cliches; be concrete and relatable
-Language:
-- Match the dominant language of input cards (zh-TW, en, or ja).
+You are a warm, wood‑tone, mature life coach. Speak concisely but poetically.
+You must create a short daily encouragement that is INSPIRED BY (not copied from) the user's notes.
+Hard rules:
+- Output JSON ONLY with keys: 
+  {
+    "title": string,
+    "message": string,               // 1–2 sentences, paraphrased, not copying any input text
+    "song": { 
+      "title": string, 
+      "artist": string, 
+      "youtube_url": string,         // direct YouTube watch/listen URL
+      "reason": string               // why this song matches the message in 1 short sentence
+    }
+  }
+- Do NOT quote or reuse full sentences from the notes; summarize the essence and extend it.
+- Keep message warm, grounded, and hopeful with a wooden aesthetic; avoid cliches.
+- Language must match the dominant language of the input notes (zh‑TW, en, or ja).
 `.trim();
 
 function getTodayISODate(): string {
@@ -84,13 +93,10 @@ export async function POST() {
     }).join('\n\n');
 
     const userPrompt = `
-These are 2 randomly selected cards from all saved cards.
-Generate today's inspiration with this JSON schema:
-{
-  "title": string,
-  "message": string,
-  "song": { "title": string, "artist": string, "reason": string }
-}
+These are 2 randomly selected cards from all saved cards. 
+Create the JSON only (no extra text). 
+Requirements for "message": 1–2 sentences, paraphrased/extended from the themes of the notes, not copied verbatim.
+For "song", provide a direct YouTube link in "youtube_url".
 
 Cards:
 ${selectedText}
@@ -124,12 +130,22 @@ ${selectedText}
         .join('\n\n')
         .slice(0, 400) || 'Take a deep breath. Notice one small thing you can appreciate right now.';
 
+    // Try to pull a plausible YouTube URL if model forgot the field
+    const toYoutube = (v: any): string => {
+      const text = (v || '').toString();
+      const m = text.match(/https?:\/\/(www\.)?(youtube\.com\/watch\?v=[\w\-]+|youtu\.be\/[\w\-]+)/i);
+      return m ? m[0] : '';
+    };
+
     const normalized = {
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
       song: {
         title: parsed?.song?.title ? parsed.song.title.toString().trim() : '',
         artist: parsed?.song?.artist ? parsed.song.artist.toString().trim() : '',
+        youtube_url: parsed?.song?.youtube_url
+          ? parsed.song.youtube_url.toString().trim()
+          : toYoutube(parsed?.song?.reason || ''),
         reason: parsed?.song?.reason ? parsed.song.reason.toString().trim() : '',
       },
     };
