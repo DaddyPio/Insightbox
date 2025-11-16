@@ -32,7 +32,8 @@ export default function CardsPage() {
       if (tagFilter) params.append('tag', tagFilter);
       params.append('sort', 'latest');
 
-      const response = await fetch(`/api/notes?${params.toString()}`);
+      const { authFetch } = await import('@/lib/utils/authFetch');
+      const response = await authFetch(`/api/notes?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch notes');
 
       const data = await response.json();

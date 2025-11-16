@@ -42,7 +42,8 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch('/api/notes', {
+      const { authFetch } = await import('@/lib/utils/authFetch');
+      const response = await authFetch('/api/notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

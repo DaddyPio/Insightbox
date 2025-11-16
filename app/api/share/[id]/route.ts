@@ -1,6 +1,6 @@
 // @ts-nocheck - Supabase type inference issue with conditional client
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/server';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { toPng } from 'html-to-image';
 
 /**
@@ -14,8 +14,9 @@ export async function GET(
   try {
     const { id } = params;
 
+    const supabase = supabaseFromRequest(request);
     // Get the note
-    const { data: note, error } = await supabaseAdmin
+    const { data: note, error } = await supabase
       .from('notes')
       .select('*')
       .eq('id', id)

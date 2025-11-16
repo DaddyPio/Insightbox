@@ -74,7 +74,8 @@ export async function PUT(
     if (topic !== undefined) updateData.topic = topic;
     if (emotion !== undefined) updateData.emotion = emotion;
 
-    const { data: note, error } = await supabaseAdmin!
+    const supabase = supabaseFromRequest(request);
+    const { data: note, error } = await supabase!
       .from('notes')
       .update(updateData)
       .eq('id', id)
@@ -115,7 +116,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
         { error: 'Supabase is not configured' },
         { status: 500 }
@@ -123,8 +124,9 @@ export async function DELETE(
     }
 
     const { id } = params;
+    const supabase = supabaseFromRequest(request);
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('notes')
       .delete()
       .eq('id', id);

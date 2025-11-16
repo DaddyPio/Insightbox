@@ -7,6 +7,7 @@ import { toPng } from 'html-to-image';
 import type { Note } from '@/lib/supabase/types';
 import { detectLanguage } from '@/lib/utils/language';
 import { imageStyles, type ImageStyle } from '@/lib/utils/imageStyles';
+import { authFetch } from '@/lib/utils/authFetch';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 import { getStoredLanguage, setStoredLanguage } from '@/lib/utils/languageContext';
 
@@ -38,7 +39,7 @@ export default function SharePage() {
   const fetchNote = async (id: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/share/${id}`);
+      const response = await authFetch(`/api/share/${id}`);
       if (!response.ok) throw new Error('Note not found');
 
       const data = await response.json();

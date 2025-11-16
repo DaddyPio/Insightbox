@@ -36,7 +36,8 @@ export default function CardPage() {
   const fetchNote = async (id: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/notes/${id}`);
+      const { authFetch } = await import('@/lib/utils/authFetch');
+      const response = await authFetch(`/api/notes/${id}`);
       if (!response.ok) throw new Error('Note not found');
 
       const data = await response.json();
@@ -49,7 +50,7 @@ export default function CardPage() {
       setEditSummary(data.note.summary || '');
 
       // Fetch related notes
-      const relatedResponse = await fetch(`/api/notes/${id}/related`);
+      const relatedResponse = await authFetch(`/api/notes/${id}/related`);
       if (relatedResponse.ok) {
         const relatedData = await relatedResponse.json();
         setRelatedNotes(relatedData.notes || []);
@@ -69,7 +70,8 @@ export default function CardPage() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/notes/${note.id}`, {
+      const { authFetch } = await import('@/lib/utils/authFetch');
+      const response = await authFetch(`/api/notes/${note.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +117,8 @@ export default function CardPage() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/notes/${note.id}`, {
+      const { authFetch } = await import('@/lib/utils/authFetch');
+      const response = await authFetch(`/api/notes/${note.id}`, {
         method: 'DELETE',
       });
 

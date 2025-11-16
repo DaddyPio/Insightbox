@@ -1,6 +1,7 @@
 // @ts-nocheck - Supabase type inference issue with conditional client
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { findRelatedNotes } from '@/lib/openai/utils';
 import type { Note } from '@/lib/supabase/types';
 
@@ -13,7 +14,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
         { error: 'Supabase is not configured' },
         { status: 500 }
@@ -22,8 +23,9 @@ export async function GET(
 
     const { id } = params;
 
+    const supabase = supabaseFromRequest(request);
     // Get the current note
-    const { data: currentNote, error: noteError } = await supabaseAdmin
+    const { data: currentNote, error: noteError } = await supabase
       .from('notes')
       .select('*')
       .eq('id', id)
@@ -37,7 +39,7 @@ export async function GET(
     }
 
     // Get all other notes
-    const { data: allNotes, error: allNotesError } = await supabaseAdmin
+    const { data: allNotes, error: allNotesError } = await supabase
       .from('notes')
       .select('*')
       .neq('id', id)
@@ -56,7 +58,7 @@ export async function GET(
     }
 
     // Fetch the related notes
-    const { data: relatedNotes, error: relatedError } = await supabaseAdmin
+    const { data: relatedNotes, error: relatedError } = await supabase
       .from('notes')
       .select('*')
       .in('id', relatedIds);

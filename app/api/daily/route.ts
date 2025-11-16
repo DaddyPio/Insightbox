@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 import { format } from 'date-fns';
 
@@ -33,14 +34,15 @@ function getTodayISODate(): string {
  * GET /api/daily
  * Fetch today's inspiration if exists; otherwise 404
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
     }
 
     const today = getTodayISODate();
-    const { data, error } = await supabaseAdmin
+    const supabase = supabaseFromRequest(request);
+    const { data, error } = await supabase
       .from('daily_inspiration')
       .select('*')
       .eq('date', today)
@@ -61,9 +63,9 @@ export async function GET() {
  * POST /api/daily
  * Generate today's inspiration (idempotent - upsert by date)
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
     }
     if (!isOpenAIConfigured() || !openai) {
@@ -73,7 +75,8 @@ export async function POST() {
     const today = getTodayISODate();
 
     // Fetch all cards (notes)
-    const { data: notes, error: notesError } = await supabaseAdmin
+    const supabase = supabaseFromRequest(request);
+    const { data: notes, error: notesError } = await supabase
       .from('notes')
       .select('id, title, content, tags')
       .order('created_at', { ascending: false });
@@ -188,7 +191,7 @@ ${selectedText}
     delete (normalized.song as any).youtube_candidates;
 
     // Upsert by date
-    const { data: upserted, error: upsertError } = await supabaseAdmin
+    const { data: upserted, error: upsertError } = await supabase
       .from('daily_inspiration')
       .upsert({ date: today, content_json: normalized }, { onConflict: 'date' })
       .select()

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
 import { isOpenAIConfigured } from '@/lib/openai/client';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import {
   generateTitle,
   classifyTopic,
@@ -46,12 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Failed to initialize Supabase client' },
-        { status: 500 }
-      );
-    }
+
 
     const { content } = await request.json();
 
@@ -75,8 +71,9 @@ export async function POST(request: NextRequest) {
       generateSummary(content, title),
     ]);
 
-    // Insert note into database
-    const { data: note, error } = await supabaseAdmin
+    // Insert note into database (RLS applies; user_id defaults to auth.uid())
+    const supabase = supabaseFromRequest(request);
+    const { data: note, error } = await supabase
       .from('notes')
       .insert({
         title,
@@ -154,7 +151,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const sort = searchParams.get('sort') || 'latest';
 
-    let query = supabaseAdmin
+    const supabase = supabaseFromRequest(request);
+    let query = supabase
       .from('notes')
       .select('*');
 
