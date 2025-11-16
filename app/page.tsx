@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SpeechToTextButton from '@/components/SpeechToTextButton';
 import { getStoredLanguage, setStoredLanguage } from '@/lib/utils/languageContext';
-import type { AppLanguage } from '@/lib/utils/translations';
+import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -28,11 +28,13 @@ export default function Home() {
     window.dispatchEvent(new Event('languageChanged'));
   };
 
+  const t = getTranslation(language);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!content.trim()) {
-      setError('Please enter some content');
+      setError(t.yourNote);
       return;
     }
 
@@ -96,23 +98,23 @@ export default function Home() {
 
       <div className="text-center mb-12">
         <h1 className="text-4xl font-serif font-bold text-wood-800 mb-4">
-          Capture Your Insight
+          {t.homeTitle}
         </h1>
         <p className="text-wood-600 text-lg">
-          Write or speak your thoughts. AI will help organize and understand them.
+          {t.homeSubtitle}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-wood-700 mb-2">
-            Your Note
+            {t.yourNote}
           </label>
           <textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="What's on your mind? Write or use the voice button below..."
+            placeholder={t.placeholder}
             rows={8}
             className="input-field resize-none"
             disabled={isSubmitting}
@@ -139,10 +141,10 @@ export default function Home() {
             {isSubmitting ? (
               <span className="flex items-center space-x-2">
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>Processing...</span>
+                <span>{t.processing}</span>
               </span>
             ) : (
-              'Save Note'
+              t.saveNote
             )}
           </button>
         </div>
@@ -171,6 +173,10 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      <footer className="mt-12 text-center text-wood-500">
+        {t.footerCopyright}
+      </footer>
     </div>
   );
 }

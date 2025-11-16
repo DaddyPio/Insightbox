@@ -37,6 +37,15 @@ export interface Translations {
   navHome: string;
   navCards: string;
   navWeeklyReview: string;
+
+  // Home page
+  homeTitle: string;
+  homeSubtitle: string;
+  yourNote: string;
+  placeholder: string;
+  processing: string;
+  saveNote: string;
+  footerCopyright: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -66,6 +75,13 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: '首頁',
     navCards: '卡片',
     navWeeklyReview: '週報',
+    homeTitle: '捕捉你的靈感',
+    homeSubtitle: '用文字或語音記錄想法，AI 會協助整理與理解。',
+    yourNote: '你的筆記',
+    placeholder: '在想些什麼？可以輸入內容，或使用下方語音按鈕…',
+    processing: '處理中…',
+    saveNote: '儲存筆記',
+    footerCopyright: 'APP版權為 DaddyPio',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -93,6 +109,13 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: 'Home',
     navCards: 'Cards',
     navWeeklyReview: 'Weekly Review',
+    homeTitle: 'Capture Your Insight',
+    homeSubtitle: 'Write or speak your thoughts. AI will help organize and understand them.',
+    yourNote: 'Your Note',
+    placeholder: "What's on your mind? Write or use the voice button below...",
+    processing: 'Processing...',
+    saveNote: 'Save Note',
+    footerCopyright: 'App Copyright © DaddyPio',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -120,6 +143,13 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: 'ホーム',
     navCards: 'カード',
     navWeeklyReview: '週間レビュー',
+    homeTitle: 'ひらめきをキャプチャ',
+    homeSubtitle: '文章や音声で考えを記録。AIが整理と理解を手助けします。',
+    yourNote: 'あなたのノート',
+    placeholder: '今何を考えていますか？入力するか、下の音声ボタンを使ってください…',
+    processing: '処理中...',
+    saveNote: 'ノートを保存',
+    footerCopyright: 'アプリの著作権 © DaddyPio',
   },
 };
 
