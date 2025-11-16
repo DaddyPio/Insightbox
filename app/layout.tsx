@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
+const notoSansTC = Noto_Sans_TC({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sans-tc",
+});
 
 export const metadata: Metadata = {
   title: "InsightBox - Capture Your Ideas",
@@ -17,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className={`${inter.className} ${notoSansTC.variable}`}>
         <nav className="bg-wood-100 border-b border-wood-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
