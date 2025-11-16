@@ -116,10 +116,28 @@ ${selectedText}
       parsed = match ? JSON.parse(match[0]) : { title: 'Daily Inspiration', message: raw };
     }
 
+    // Normalize result and provide fallbacks when fields missing
+    const fallbackMessage =
+      selected
+        .map((n) => (n?.content || '').trim())
+        .filter(Boolean)
+        .join('\n\n')
+        .slice(0, 400) || 'Take a deep breath. Notice one small thing you can appreciate right now.';
+
+    const normalized = {
+      title: (parsed?.title || 'Daily Inspiration').toString().trim(),
+      message: (parsed?.message || fallbackMessage).toString().trim(),
+      song: {
+        title: parsed?.song?.title ? parsed.song.title.toString().trim() : '',
+        artist: parsed?.song?.artist ? parsed.song.artist.toString().trim() : '',
+        reason: parsed?.song?.reason ? parsed.song.reason.toString().trim() : '',
+      },
+    };
+
     // Upsert by date
     const { data: upserted, error: upsertError } = await supabaseAdmin
       .from('daily_inspiration')
-      .upsert({ date: today, content_json: parsed }, { onConflict: 'date' })
+      .upsert({ date: today, content_json: normalized }, { onConflict: 'date' })
       .select()
       .single();
 
