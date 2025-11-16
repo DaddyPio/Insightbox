@@ -117,7 +117,7 @@ export default function SharePage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent-DEFAULT rounded-full animate-spin"></div>
+        <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent rounded-full animate-spin"></div>
         <p className="mt-4 text-wood-600">Loading...</p>
       </div>
     );
