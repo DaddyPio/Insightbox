@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format, startOfWeek } from 'date-fns';
+import { authFetch } from '@/lib/utils/authFetch';
 
 interface WeeklyInsight {
   id: string;
@@ -30,7 +31,7 @@ export default function WeeklyPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/weekly');
+      const response = await authFetch('/api/weekly');
       if (!response.ok) throw new Error('Failed to fetch weekly insight');
 
       const data = await response.json();
