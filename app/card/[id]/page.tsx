@@ -24,6 +24,7 @@ export default function CardPage() {
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editSummary, setEditSummary] = useState('');
   const [newTag, setNewTag] = useState('');
+  const [regeneratingTitle, setRegeneratingTitle] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -143,6 +144,34 @@ export default function CardPage() {
     setEditTags(editTags.filter(tag => tag !== tagToRemove));
   };
 
+  const regenerateTitle = async () => {
+    if (!note) return;
+
+    setRegeneratingTitle(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/notes/${note.id}/regenerate-title`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to regenerate title');
+      }
+
+      const data = await response.json();
+      setNote(data.note);
+      setEditTitle(data.note.title);
+      
+      alert('標題已重新生成！');
+    } catch (err) {
+      console.error('Error regenerating title:', err);
+      setError(err instanceof Error ? err.message : 'Failed to regenerate title');
+    } finally {
+      setRegeneratingTitle(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
@@ -181,12 +210,21 @@ export default function CardPage() {
         <div className="mb-4">
           <div className="flex items-start justify-between mb-2">
             {isEditing ? (
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="text-3xl font-serif font-bold text-wood-800 bg-transparent border-b-2 border-wood-300 focus:border-accent focus:outline-none w-full"
-              />
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="text-3xl font-serif font-bold text-wood-800 bg-transparent border-b-2 border-wood-300 focus:border-accent focus:outline-none w-full"
+                />
+                <button
+                  onClick={regenerateTitle}
+                  disabled={regeneratingTitle}
+                  className="mt-2 btn-secondary text-sm disabled:opacity-50"
+                >
+                  {regeneratingTitle ? '生成中...' : '🤖 AI 重新生成標題'}
+                </button>
+              </div>
             ) : (
               <h1 className="text-3xl font-serif font-bold text-wood-800">
                 {note.title}

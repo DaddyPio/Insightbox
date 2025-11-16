@@ -8,21 +8,26 @@ import type { Note } from '@/lib/supabase/types';
 import { detectLanguage } from '@/lib/utils/language';
 import { imageStyles, type ImageStyle } from '@/lib/utils/imageStyles';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
+import { getStoredLanguage, setStoredLanguage } from '@/lib/utils/languageContext';
 
 export default function SharePage() {
   const params = useParams();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [regeneratingTitle, setRegeneratingTitle] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('wooden');
   const [detectedLang, setDetectedLang] = useState<AppLanguage>('en');
   const [selectedLang, setSelectedLang] = useState<AppLanguage | null>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   
-  // Use selected language if set, otherwise use detected language
-  const language = selectedLang || detectedLang;
+  // Use selected language if set, otherwise use stored language, otherwise use detected language
+  const language = selectedLang || getStoredLanguage() || detectedLang;
   const t = getTranslation(language);
+
+  const handleLanguageChange = (lang: AppLanguage) => {
+    setSelectedLang(lang);
+    setStoredLanguage(lang);
+  };
 
   useEffect(() => {
     if (params.id) {
@@ -128,38 +133,52 @@ export default function SharePage() {
       const targetWidth = 1080;
       const targetHeight = 1350;
       
-      // Clone the preview element for exact rendering
-      const previewElement = imageRef.current;
-      const clonedElement = previewElement.cloneNode(true) as HTMLElement;
+      // Store original styles
+      const originalStyles = {
+        width: imageRef.current.style.width,
+        height: imageRef.current.style.height,
+        position: imageRef.current.style.position,
+        left: imageRef.current.style.left,
+        top: imageRef.current.style.top,
+        transform: imageRef.current.style.transform,
+        visibility: imageRef.current.style.visibility,
+        zIndex: imageRef.current.style.zIndex,
+      };
+
+      // Set exact dimensions on the actual element for rendering
+      imageRef.current.style.width = `${targetWidth}px`;
+      imageRef.current.style.height = `${targetHeight}px`;
+      imageRef.current.style.position = 'fixed';
+      imageRef.current.style.left = '-9999px';
+      imageRef.current.style.top = '0';
+      imageRef.current.style.margin = '0';
+      imageRef.current.style.padding = '0';
+      imageRef.current.style.transform = 'none';
+      imageRef.current.style.visibility = 'visible';
+      imageRef.current.style.zIndex = '9999';
       
-      // Set exact dimensions on cloned element
-      clonedElement.style.width = `${targetWidth}px`;
-      clonedElement.style.height = `${targetHeight}px`;
-      clonedElement.style.position = 'fixed';
-      clonedElement.style.left = '-9999px';
-      clonedElement.style.top = '0';
-      clonedElement.style.margin = '0';
-      clonedElement.style.padding = '0';
-      clonedElement.style.transform = 'none';
-      clonedElement.style.visibility = 'hidden';
+      // Wait for fonts and images to load
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Append to body temporarily
-      document.body.appendChild(clonedElement);
+      // Ensure all fonts are loaded
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
       
-      // Wait for layout to settle
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const dataUrl = await toPng(clonedElement, {
+      const dataUrl = await toPng(imageRef.current, {
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: bgColor,
         width: targetWidth,
         height: targetHeight,
         cacheBust: true,
+        fontEmbedCSS: `
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        `,
       });
 
-      // Remove cloned element
-      document.body.removeChild(clonedElement);
+      // Restore original styles
+      Object.assign(imageRef.current.style, originalStyles);
 
       const filename = `insightbox-${note.id}-${selectedStyle}.png`;
 
@@ -187,31 +206,6 @@ export default function SharePage() {
     }
   };
 
-  const regenerateTitle = async () => {
-    if (!note) return;
-
-    setRegeneratingTitle(true);
-    try {
-      const response = await fetch(`/api/notes/${note.id}/regenerate-title`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to regenerate title');
-      }
-
-      const data = await response.json();
-      setNote(data.note);
-      
-      alert(t.titleRegenerated);
-    } catch (error) {
-      console.error('Error regenerating title:', error);
-      alert(t.failedToRegenerateTitle);
-    } finally {
-      setRegeneratingTitle(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -260,7 +254,7 @@ export default function SharePage() {
             </label>
             <select
               value={language}
-              onChange={(e) => setSelectedLang(e.target.value as AppLanguage)}
+              onChange={(e) => handleLanguageChange(e.target.value as AppLanguage)}
               className="px-3 py-1 border border-wood-300 rounded-lg bg-white text-wood-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             >
               <option value="zh-TW">中文</option>
@@ -274,17 +268,6 @@ export default function SharePage() {
           {t.chooseStyleAndDownload}
         </p>
 
-        {/* Regenerate Title Button */}
-        <div className="mb-4">
-          <button
-            onClick={regenerateTitle}
-            disabled={regeneratingTitle}
-            className="btn-secondary w-full disabled:opacity-50"
-          >
-            {regeneratingTitle ? t.generating : t.aiRegenerateTitle}
-          </button>
-        </div>
-        
         {/* Style Selector */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-wood-700 mb-2">

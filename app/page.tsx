@@ -1,14 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SpeechToTextButton from '@/components/SpeechToTextButton';
+import { getStoredLanguage, setStoredLanguage } from '@/lib/utils/languageContext';
+import type { AppLanguage } from '@/lib/utils/translations';
 
 export default function Home() {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<AppLanguage>('en');
   const router = useRouter();
+
+  useEffect(() => {
+    // Load language from localStorage or default to 'en'
+    const storedLang = getStoredLanguage();
+    if (storedLang) {
+      setLanguage(storedLang);
+    }
+  }, []);
+
+  const handleLanguageChange = (lang: AppLanguage) => {
+    setLanguage(lang);
+    setStoredLanguage(lang);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +74,24 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
+      {/* Language Selector */}
+      <div className="flex justify-end mb-6">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-wood-700">
+            {language === 'zh-TW' ? '語言' : language === 'ja' ? '言語' : 'Language'}:
+          </label>
+          <select
+            value={language}
+            onChange={(e) => handleLanguageChange(e.target.value as AppLanguage)}
+            className="px-3 py-1 border border-wood-300 rounded-lg bg-white text-wood-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="zh-TW">中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+          </select>
+        </div>
+      </div>
+
       <div className="text-center mb-12">
         <h1 className="text-4xl font-serif font-bold text-wood-800 mb-4">
           Capture Your Insight
