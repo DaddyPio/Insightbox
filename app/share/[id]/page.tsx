@@ -133,39 +133,51 @@ export default function SharePage() {
       const targetWidth = 1080;
       const targetHeight = 1350;
       
-      // Store original styles
-      const originalStyles = {
-        width: imageRef.current.style.width,
-        height: imageRef.current.style.height,
-        position: imageRef.current.style.position,
-        left: imageRef.current.style.left,
-        top: imageRef.current.style.top,
-        transform: imageRef.current.style.transform,
-        visibility: imageRef.current.style.visibility,
-        zIndex: imageRef.current.style.zIndex,
-      };
-
-      // Set exact dimensions on the actual element for rendering
-      imageRef.current.style.width = `${targetWidth}px`;
-      imageRef.current.style.height = `${targetHeight}px`;
-      imageRef.current.style.position = 'fixed';
-      imageRef.current.style.left = '-9999px';
-      imageRef.current.style.top = '0';
-      imageRef.current.style.margin = '0';
-      imageRef.current.style.padding = '0';
-      imageRef.current.style.transform = 'none';
-      imageRef.current.style.visibility = 'visible';
-      imageRef.current.style.zIndex = '9999';
+      // Create a deep clone of the element
+      const originalElement = imageRef.current;
+      const clonedElement = originalElement.cloneNode(true) as HTMLElement;
       
-      // Wait for fonts and images to load
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Set up the cloned element for rendering
+      clonedElement.style.width = `${targetWidth}px`;
+      clonedElement.style.height = `${targetHeight}px`;
+      clonedElement.style.position = 'absolute';
+      clonedElement.style.left = '0';
+      clonedElement.style.top = '0';
+      clonedElement.style.margin = '0';
+      clonedElement.style.padding = '0';
+      clonedElement.style.transform = 'none';
+      clonedElement.style.visibility = 'visible';
+      clonedElement.style.opacity = '1';
+      clonedElement.style.zIndex = '9999';
+      clonedElement.style.backgroundImage = style.background;
+      clonedElement.style.backgroundColor = bgColor;
+      
+      // Create a container for the cloned element
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = `${targetWidth}px`;
+      container.style.height = `${targetHeight}px`;
+      container.style.overflow = 'hidden';
+      container.style.backgroundColor = bgColor;
+      container.appendChild(clonedElement);
+      
+      // Append to body
+      document.body.appendChild(container);
+      
+      // Wait for layout and fonts
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Ensure all fonts are loaded
       if (document.fonts) {
         await document.fonts.ready;
       }
       
-      const dataUrl = await toPng(imageRef.current, {
+      // Wait a bit more for any background images
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const dataUrl = await toPng(clonedElement, {
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: bgColor,
@@ -177,8 +189,8 @@ export default function SharePage() {
         `,
       });
 
-      // Restore original styles
-      Object.assign(imageRef.current.style, originalStyles);
+      // Clean up
+      document.body.removeChild(container);
 
       const filename = `insightbox-${note.id}-${selectedStyle}.png`;
 
@@ -242,27 +254,9 @@ export default function SharePage() {
       </div>
 
       <div className="card mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-serif font-bold text-wood-800">
-            {t.shareImagePreview}
-          </h2>
-          
-          {/* Language Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-wood-700">
-              {language === 'zh-TW' ? '語言' : language === 'ja' ? '言語' : 'Language'}:
-            </label>
-            <select
-              value={language}
-              onChange={(e) => handleLanguageChange(e.target.value as AppLanguage)}
-              className="px-3 py-1 border border-wood-300 rounded-lg bg-white text-wood-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              <option value="zh-TW">中文</option>
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
-            </select>
-          </div>
-        </div>
+        <h2 className="text-2xl font-serif font-bold text-wood-800 mb-4">
+          {t.shareImagePreview}
+        </h2>
         
         <p className="text-wood-600 mb-4">
           {t.chooseStyleAndDownload}

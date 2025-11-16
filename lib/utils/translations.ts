@@ -32,6 +32,11 @@ export interface Translations {
   styleModernDesc: string;
   styleElegantDesc: string;
   styleBoldDesc: string;
+  
+  // Navigation
+  navHome: string;
+  navCards: string;
+  navWeeklyReview: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -58,6 +63,9 @@ export const translations: Record<AppLanguage, Translations> = {
     styleModernDesc: '大膽現代的設計',
     styleElegantDesc: '精緻優雅的設計',
     styleBoldDesc: '鮮明醒目的設計',
+    navHome: '首頁',
+    navCards: '卡片',
+    navWeeklyReview: '週報',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -82,6 +90,9 @@ export const translations: Record<AppLanguage, Translations> = {
     styleModernDesc: 'Bold and contemporary',
     styleElegantDesc: 'Sophisticated and refined',
     styleBoldDesc: 'Vibrant and eye-catching',
+    navHome: 'Home',
+    navCards: 'Cards',
+    navWeeklyReview: 'Weekly Review',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -106,6 +117,9 @@ export const translations: Record<AppLanguage, Translations> = {
     styleModernDesc: '大胆で現代的なデザイン',
     styleElegantDesc: '洗練された上品なデザイン',
     styleBoldDesc: '鮮やかで目を引くデザイン',
+    navHome: 'ホーム',
+    navCards: 'カード',
+    navWeeklyReview: '週間レビュー',
   },
 };
 

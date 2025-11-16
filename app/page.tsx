@@ -24,6 +24,8 @@ export default function Home() {
   const handleLanguageChange = (lang: AppLanguage) => {
     setLanguage(lang);
     setStoredLanguage(lang);
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('languageChanged'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
