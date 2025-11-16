@@ -75,7 +75,7 @@ export const translations: Record<AppLanguage, Translations> = {
     styleBoldDesc: '鮮明醒目的設計',
     navHome: '首頁',
     navCards: '卡片',
-    navWeeklyReview: '週報',
+    navWeeklyReview: '每週回顧',
     navDaily: '每日雞湯',
     homeTitle: '捕捉你的靈感',
     homeSubtitle: '用文字或語音記錄想法，AI 會協助整理與理解。',
