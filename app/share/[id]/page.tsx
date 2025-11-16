@@ -13,6 +13,7 @@ export default function SharePage() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [regeneratingTitle, setRegeneratingTitle] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('wooden');
   const [language, setLanguage] = useState<'zh-TW' | 'en'>('en');
   const imageRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,42 @@ export default function SharePage() {
     return truncated + '...';
   };
 
+  // Check if device is mobile/tablet
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // Save image to mobile photo gallery
+  const saveToMobileGallery = async (dataUrl: string, filename: string) => {
+    try {
+      // Convert data URL to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // Use Web Share API if available (iOS Safari, Chrome Android)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: filename,
+        });
+        return true;
+      }
+
+      // Fallback: Try to download (will save to Downloads on Android)
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return true;
+    } catch (error) {
+      console.error('Error saving to gallery:', error);
+      return false;
+    }
+  };
+
   const downloadImage = async () => {
     if (!imageRef.current || !note) return;
 
@@ -81,28 +118,60 @@ export default function SharePage() {
       const targetWidth = 1080;
       const targetHeight = 1350;
       
-      // Temporarily set the container size for image generation
-      const originalWidth = imageRef.current.style.width;
-      const originalHeight = imageRef.current.style.height;
-      imageRef.current.style.width = `${targetWidth}px`;
-      imageRef.current.style.height = `${targetHeight}px`;
+      // Clone the preview element for exact rendering
+      const previewElement = imageRef.current;
+      const clonedElement = previewElement.cloneNode(true) as HTMLElement;
       
-      const dataUrl = await toPng(imageRef.current, {
+      // Set exact dimensions on cloned element
+      clonedElement.style.width = `${targetWidth}px`;
+      clonedElement.style.height = `${targetHeight}px`;
+      clonedElement.style.position = 'fixed';
+      clonedElement.style.left = '-9999px';
+      clonedElement.style.top = '0';
+      clonedElement.style.margin = '0';
+      clonedElement.style.padding = '0';
+      clonedElement.style.transform = 'none';
+      clonedElement.style.visibility = 'hidden';
+      
+      // Append to body temporarily
+      document.body.appendChild(clonedElement);
+      
+      // Wait for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const dataUrl = await toPng(clonedElement, {
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: bgColor,
         width: targetWidth,
         height: targetHeight,
+        cacheBust: true,
       });
 
-      // Restore original size
-      imageRef.current.style.width = originalWidth;
-      imageRef.current.style.height = originalHeight;
+      // Remove cloned element
+      document.body.removeChild(clonedElement);
 
+      const filename = `insightbox-${note.id}-${selectedStyle}.png`;
+
+      // Save to mobile gallery if on mobile device
+      if (isMobileDevice()) {
+        const saved = await saveToMobileGallery(dataUrl, filename);
+        if (saved) {
+          const successMsg = language === 'zh-TW' 
+            ? '圖片已保存到相簿！' 
+            : 'Image saved to gallery!';
+          alert(successMsg);
+          return;
+        }
+      }
+
+      // Desktop: Download normally
       const link = document.createElement('a');
-      link.download = `insightbox-${note.id}-${selectedStyle}.png`;
+      link.download = filename;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error generating image:', error);
       const errorMsg = language === 'zh-TW' 
@@ -111,6 +180,38 @@ export default function SharePage() {
       alert(errorMsg);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const regenerateTitle = async () => {
+    if (!note) return;
+
+    setRegeneratingTitle(true);
+    try {
+      const response = await fetch(`/api/notes/${note.id}/regenerate-title`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to regenerate title');
+      }
+
+      const data = await response.json();
+      setNote(data.note);
+      
+      const successMsg = language === 'zh-TW' 
+        ? '標題已重新生成！' 
+        : 'Title regenerated!';
+      alert(successMsg);
+    } catch (error) {
+      console.error('Error regenerating title:', error);
+      const errorMsg = language === 'zh-TW' 
+        ? '重新生成標題失敗，請重試。' 
+        : 'Failed to regenerate title. Please try again.';
+      alert(errorMsg);
+    } finally {
+      setRegeneratingTitle(false);
     }
   };
 
@@ -157,6 +258,20 @@ export default function SharePage() {
             ? '選擇風格並下載社交媒體分享圖片。' 
             : 'Choose a style and download a social media share image.'}
         </p>
+
+        {/* Regenerate Title Button */}
+        <div className="mb-4">
+          <button
+            onClick={regenerateTitle}
+            disabled={regeneratingTitle}
+            className="btn-secondary w-full disabled:opacity-50"
+          >
+            {regeneratingTitle 
+              ? (language === 'zh-TW' ? '生成中...' : 'Generating...') 
+              : (language === 'zh-TW' ? '🤖 AI 重新生成標題' : '🤖 AI Regenerate Title')
+            }
+          </button>
+        </div>
         
         {/* Style Selector */}
         <div className="mb-4">
@@ -207,21 +322,36 @@ export default function SharePage() {
       <div className="flex justify-center mb-6">
         <div
           ref={imageRef}
-          className="relative w-[540px] h-[675px] rounded-lg shadow-2xl overflow-hidden"
+          className="relative rounded-lg shadow-2xl overflow-hidden"
           style={{
+            width: '540px',
+            height: '675px',
             backgroundImage: imageStyles[selectedStyle].background,
             backgroundColor: selectedStyle === 'minimal' ? '#ffffff' : undefined,
             aspectRatio: '4/5',
+            boxSizing: 'border-box',
           }}
         >
           {/* Decorative border */}
           <div 
-            className="absolute inset-4 border-4 rounded-lg"
-            style={{ borderColor: imageStyles[selectedStyle].borderColor }}
+            className="absolute border-4 rounded-lg"
+            style={{ 
+              borderColor: imageStyles[selectedStyle].borderColor,
+              inset: '1rem',
+              boxSizing: 'border-box',
+            }}
           ></div>
           
           {/* Content */}
-          <div className="absolute inset-8 flex flex-col justify-center items-center p-6 text-center" style={{ height: 'calc(100% - 4rem)' }}>
+          <div 
+            className="absolute flex flex-col justify-center items-center text-center"
+            style={{ 
+              inset: '2rem',
+              height: 'calc(100% - 4rem)',
+              width: 'calc(100% - 4rem)',
+              boxSizing: 'border-box',
+            }}
+          >
             {/* Quote icon */}
             <div 
               className="text-6xl mb-4 opacity-30"
