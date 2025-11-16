@@ -124,7 +124,7 @@ export default function SharePage() {
           {/* Content */}
           <div className="absolute inset-8 flex flex-col justify-center items-center p-8 text-center">
             {/* Quote icon */}
-            <div className="text-wood-700 text-6xl mb-4 opacity-30">"</div>
+            <div className="text-wood-700 text-6xl mb-4 opacity-30">&ldquo;</div>
             
             {/* Main quote */}
             <p className="font-serif text-3xl text-wood-900 leading-relaxed mb-6">

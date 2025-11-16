@@ -19,6 +19,7 @@ export default function CardsPage() {
 
   useEffect(() => {
     fetchNotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, topicFilter, emotionFilter, tagFilter]);
 
   const fetchNotes = async () => {
