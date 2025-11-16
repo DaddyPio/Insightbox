@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
+import dynamic from 'next/dynamic';
+
+const AuthButton = dynamic(() => import('@/components/AuthButton'), { ssr: false });
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -48,7 +51,7 @@ export default function Navigation() {
   return (
     <nav className="bg-wood-100 border-b border-wood-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
             <Link href="/" className="text-2xl font-serif font-bold text-wood-800">
               InsightBox
@@ -116,6 +119,14 @@ export default function Navigation() {
               )}
             </button>
           </div>
+
+          {/* Desktop auth + hint */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="text-xs text-wood-600">
+              切換使用者：先登出，再使用新 Email 登入
+            </div>
+            <AuthButton />
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -166,6 +177,13 @@ export default function Navigation() {
               >
                 {t.navWeeklyReview}
               </Link>
+
+              <div className="px-3 pt-2 text-xs text-wood-600">
+                切換使用者：先登出，再使用新 Email 登入
+              </div>
+              <div className="px-3">
+                <AuthButton />
+              </div>
             </div>
           </div>
         )}
