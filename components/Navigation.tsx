@@ -76,6 +76,16 @@ export default function Navigation() {
                 {t.navCards}
               </Link>
               <Link 
+                href="/daily" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/daily' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.navDaily}
+              </Link>
+              <Link 
                 href="/weekly" 
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/weekly' 

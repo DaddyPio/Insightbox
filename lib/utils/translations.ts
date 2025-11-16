@@ -37,6 +37,7 @@ export interface Translations {
   navHome: string;
   navCards: string;
   navWeeklyReview: string;
+  navDaily: string;
 
   // Home page
   homeTitle: string;
@@ -75,6 +76,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: '首頁',
     navCards: '卡片',
     navWeeklyReview: '週報',
+    navDaily: '每日靈感',
     homeTitle: '捕捉你的靈感',
     homeSubtitle: '用文字或語音記錄想法，AI 會協助整理與理解。',
     yourNote: '你的筆記',
@@ -109,6 +111,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: 'Home',
     navCards: 'Cards',
     navWeeklyReview: 'Weekly Review',
+    navDaily: 'Daily',
     homeTitle: 'Capture Your Insight',
     homeSubtitle: 'Write or speak your thoughts. AI will help organize and understand them.',
     yourNote: 'Your Note',
@@ -143,6 +146,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navHome: 'ホーム',
     navCards: 'カード',
     navWeeklyReview: '週間レビュー',
+    navDaily: 'デイリー',
     homeTitle: 'ひらめきをキャプチャ',
     homeSubtitle: '文章や音声で考えを記録。AIが整理と理解を手助けします。',
     yourNote: 'あなたのノート',
