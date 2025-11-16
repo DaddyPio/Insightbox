@@ -1,6 +1,7 @@
 // @ts-nocheck - Supabase type inference issue with conditional client
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { generateWeeklyReview } from '@/lib/openai/utils';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
 
@@ -10,6 +11,11 @@ import { startOfWeek, endOfWeek, format } from 'date-fns';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Require login
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const searchParams = request.nextUrl.searchParams;
     const weekParam = searchParams.get('week');
     
@@ -22,8 +28,10 @@ export async function GET(request: NextRequest) {
     const weekEnd = endOfWeek(weekDate, { weekStartsOn: 1 });
     const weekKey = format(weekStart, 'yyyy-MM-dd');
 
+    const supabase = supabaseFromRequest(request);
+
     // Check if weekly insights already exist
-    const { data: existingInsight, error: fetchError } = await supabaseAdmin
+    const { data: existingInsight, error: fetchError } = await supabase
       .from('weekly_insights')
       .select('*')
       .eq('week', weekKey)
@@ -34,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all notes from this week
-    const { data: notes, error: notesError } = await supabaseAdmin
+    const { data: notes, error: notesError } = await supabase
       .from('notes')
       .select('*')
       .gte('created_at', weekStart.toISOString())
@@ -80,7 +88,7 @@ export async function GET(request: NextRequest) {
     const summary = `This week you captured ${notes.length} note${notes.length !== 1 ? 's' : ''}. ${aiInsights.reflection}`;
 
     // Save to database
-    const { data: savedInsight, error: saveError } = await supabaseAdmin
+    const { data: savedInsight, error: saveError } = await supabase
       .from('weekly_insights')
       .insert({
         week: weekKey,

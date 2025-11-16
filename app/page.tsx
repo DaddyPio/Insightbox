@@ -97,6 +97,11 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Register button */}
+      <div className="flex justify-end mb-4">
+        <a href="/login" className="btn-secondary">註冊 / 登入</a>
+      </div>
+
       <div className="text-center mb-12">
         <h1 className="text-4xl font-serif font-bold text-wood-800 mb-4">
           {t.homeTitle}
