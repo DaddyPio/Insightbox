@@ -51,6 +51,22 @@ export default function AuthButton() {
     setUserEmail(null);
   };
 
+  const oauthSignin = async (provider: 'google' | 'github') => {
+    setError(null);
+    try {
+      const { error } = await supabaseBrowser.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+          skipBrowserRedirect: false,
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err?.message || 'OAuth signin failed');
+    }
+  };
+
   if (userEmail) {
     return (
       <div className="flex items-center gap-3">
@@ -61,21 +77,37 @@ export default function AuthButton() {
   }
 
   return (
-    <form onSubmit={signIn} className="flex items-center gap-2">
-      <input
-        type="email"
-        placeholder="輸入 Email 登入"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="input-field w-44 sm:w-56"
-      />
-      <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50">
-        {sending ? '寄送中...' : '登入連結'}
+    <div className="flex items-center gap-2">
+      <form onSubmit={signIn} className="flex items-center gap-2">
+        <input
+          type="email"
+          placeholder="輸入 Email 登入"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="input-field w-44 sm:w-56"
+        />
+        <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50">
+          {sending ? '寄送中...' : '登入連結'}
+        </button>
+      </form>
+      <button
+        onClick={() => oauthSignin('google')}
+        className="btn-secondary"
+        title="使用 Google 登入"
+      >
+        Google
+      </button>
+      <button
+        onClick={() => oauthSignin('github')}
+        className="btn-secondary"
+        title="使用 GitHub 登入"
+      >
+        GitHub
       </button>
       {info && <span className="text-xs text-wood-600">{info}</span>}
       {error && <span className="text-xs text-red-600">{error}</span>}
-    </form>
+    </div>
   );
 }
 
