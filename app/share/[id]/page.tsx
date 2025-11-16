@@ -44,6 +44,27 @@ export default function SharePage() {
     }
   };
 
+  // Smart content truncation based on character count and language
+  const truncateContent = (content: string, maxLength: number): string => {
+    if (content.length <= maxLength) return content;
+    
+    // For Chinese, count characters differently
+    if (language === 'zh-TW') {
+      // Chinese characters take more visual space, so truncate earlier
+      const chineseMaxLength = Math.floor(maxLength * 0.7);
+      if (content.length <= chineseMaxLength) return content;
+      return content.substring(0, chineseMaxLength) + '...';
+    }
+    
+    // For English, try to break at word boundary
+    const truncated = content.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > maxLength * 0.8) {
+      return truncated.substring(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+  };
+
   const downloadImage = async () => {
     if (!imageRef.current || !note) return;
 
@@ -56,13 +77,27 @@ export default function SharePage() {
                      selectedStyle === 'modern' ? '#667eea' :
                      selectedStyle === 'elegant' ? '#f5f7fa' : '#f093fb';
       
+      // Use optimal social media size: 1080x1350 (4:5 ratio, perfect for Instagram, Facebook)
+      const targetWidth = 1080;
+      const targetHeight = 1350;
+      
+      // Temporarily set the container size for image generation
+      const originalWidth = imageRef.current.style.width;
+      const originalHeight = imageRef.current.style.height;
+      imageRef.current.style.width = `${targetWidth}px`;
+      imageRef.current.style.height = `${targetHeight}px`;
+      
       const dataUrl = await toPng(imageRef.current, {
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: bgColor,
-        width: 1080,
-        height: 1080,
+        width: targetWidth,
+        height: targetHeight,
       });
+
+      // Restore original size
+      imageRef.current.style.width = originalWidth;
+      imageRef.current.style.height = originalHeight;
 
       const link = document.createElement('a');
       link.download = `insightbox-${note.id}-${selectedStyle}.png`;
@@ -172,10 +207,11 @@ export default function SharePage() {
       <div className="flex justify-center mb-6">
         <div
           ref={imageRef}
-          className="relative w-[540px] h-[540px] rounded-lg shadow-2xl overflow-hidden"
+          className="relative w-[540px] h-[675px] rounded-lg shadow-2xl overflow-hidden"
           style={{
             backgroundImage: imageStyles[selectedStyle].background,
             backgroundColor: selectedStyle === 'minimal' ? '#ffffff' : undefined,
+            aspectRatio: '4/5',
           }}
         >
           {/* Decorative border */}
@@ -185,7 +221,7 @@ export default function SharePage() {
           ></div>
           
           {/* Content */}
-          <div className="absolute inset-8 flex flex-col justify-center items-center p-8 text-center">
+          <div className="absolute inset-8 flex flex-col justify-center items-center p-6 text-center" style={{ height: 'calc(100% - 4rem)' }}>
             {/* Quote icon */}
             <div 
               className="text-6xl mb-4 opacity-30"
@@ -195,23 +231,33 @@ export default function SharePage() {
             
             {/* Main quote */}
             <p 
-              className="font-serif text-3xl leading-relaxed mb-6"
+              className="font-serif leading-relaxed mb-4 px-4"
               style={{ 
                 color: imageStyles[selectedStyle].textColor,
-                fontFamily: language === 'zh-TW' ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif'
+                fontFamily: language === 'zh-TW' ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif',
+                fontSize: language === 'zh-TW' ? 'clamp(1.5rem, 4vw, 2rem)' : 'clamp(1.25rem, 3.5vw, 1.75rem)',
+                lineHeight: '1.6',
+                maxHeight: '60%',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: language === 'zh-TW' ? 8 : 6,
+                WebkitBoxOrient: 'vertical',
               }}
             >
-              {note.content.length > 200 
-                ? note.content.substring(0, 200) + '...' 
-                : note.content}
+              {truncateContent(note.content, language === 'zh-TW' ? 100 : 150)}
             </p>
             
             {/* Title */}
             <p 
-              className="font-serif text-xl font-semibold mb-4"
+              className="font-serif font-semibold mb-3 px-4"
               style={{ 
                 color: imageStyles[selectedStyle].titleColor,
-                fontFamily: language === 'zh-TW' ? '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif'
+                fontFamily: language === 'zh-TW' ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif',
+                fontSize: language === 'zh-TW' ? 'clamp(1rem, 2.5vw, 1.25rem)' : 'clamp(0.875rem, 2vw, 1.125rem)',
+                maxWidth: '90%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
               {note.title}
