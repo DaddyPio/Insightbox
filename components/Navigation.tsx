@@ -120,11 +120,8 @@ export default function Navigation() {
             </button>
           </div>
 
-          {/* Desktop auth + hint */}
+          {/* Desktop auth */}
           <div className="hidden md:flex items-center gap-4">
-            <div className="text-xs text-wood-600">
-              切換使用者：先登出，再使用新 Email 登入
-            </div>
             <AuthButton />
           </div>
         </div>
@@ -178,9 +175,6 @@ export default function Navigation() {
                 {t.navWeeklyReview}
               </Link>
 
-              <div className="px-3 pt-2 text-xs text-wood-600">
-                切換使用者：先登出，再使用新 Email 登入
-              </div>
               <div className="px-3">
                 <AuthButton />
               </div>
