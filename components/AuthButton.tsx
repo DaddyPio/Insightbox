@@ -30,10 +30,13 @@ export default function AuthButton() {
     setError(null);
     setInfo(null);
     try {
+      const redirectTo =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        (typeof window !== 'undefined' ? window.location.origin : undefined);
       const { error } = await supabaseBrowser.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+          emailRedirectTo: redirectTo,
         },
       });
       if (error) throw error;
@@ -51,21 +54,7 @@ export default function AuthButton() {
     setUserEmail(null);
   };
 
-  const oauthSignin = async (provider: 'google' | 'github') => {
-    setError(null);
-    try {
-      const { error } = await supabaseBrowser.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
-          skipBrowserRedirect: false,
-        },
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err?.message || 'OAuth signin failed');
-    }
-  };
+  // OAuth 登入暫時停用（保留程式碼以便未來啟用）
 
   if (userEmail) {
     return (
@@ -91,20 +80,6 @@ export default function AuthButton() {
           {sending ? '寄送中...' : '登入連結'}
         </button>
       </form>
-      <button
-        onClick={() => oauthSignin('google')}
-        className="btn-secondary"
-        title="使用 Google 登入"
-      >
-        Google
-      </button>
-      <button
-        onClick={() => oauthSignin('github')}
-        className="btn-secondary"
-        title="使用 GitHub 登入"
-      >
-        GitHub
-      </button>
       {info && <span className="text-xs text-wood-600">{info}</span>}
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
