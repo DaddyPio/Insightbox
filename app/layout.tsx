@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_TC } from "next/font/google";
+import { Inter, Noto_Sans_TC, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 
@@ -8,6 +8,11 @@ const notoSansTC = Noto_Sans_TC({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-noto-sans-tc",
+});
+const notoSansJP = Noto_Sans_JP({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sans-jp",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +31,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.className} ${notoSansTC.variable}`}>
+      <body className={`${inter.className} ${notoSansTC.variable} ${notoSansJP.variable}`}>
         <nav className="bg-wood-100 border-b border-wood-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">

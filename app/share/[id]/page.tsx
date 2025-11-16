@@ -7,6 +7,7 @@ import { toPng } from 'html-to-image';
 import type { Note } from '@/lib/supabase/types';
 import { detectLanguage } from '@/lib/utils/language';
 import { imageStyles, type ImageStyle } from '@/lib/utils/imageStyles';
+import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 
 export default function SharePage() {
   const params = useParams();
@@ -15,8 +16,13 @@ export default function SharePage() {
   const [downloading, setDownloading] = useState(false);
   const [regeneratingTitle, setRegeneratingTitle] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('wooden');
-  const [language, setLanguage] = useState<'zh-TW' | 'en'>('en');
+  const [detectedLang, setDetectedLang] = useState<AppLanguage>('en');
+  const [selectedLang, setSelectedLang] = useState<AppLanguage | null>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+  
+  // Use selected language if set, otherwise use detected language
+  const language = selectedLang || detectedLang;
+  const t = getTranslation(language);
 
   useEffect(() => {
     if (params.id) {
@@ -35,8 +41,12 @@ export default function SharePage() {
       
       // Detect language from note content
       if (data.note?.content) {
-        const detectedLang = detectLanguage(data.note.content);
-        setLanguage(detectedLang);
+        const detected = detectLanguage(data.note.content);
+        setDetectedLang(detected);
+        // Auto-select detected language if no manual selection
+        if (!selectedLang) {
+          setSelectedLang(detected);
+        }
       }
     } catch (error) {
       console.error('Error fetching note:', error);
@@ -49,12 +59,12 @@ export default function SharePage() {
   const truncateContent = (content: string, maxLength: number): string => {
     if (content.length <= maxLength) return content;
     
-    // For Chinese, count characters differently
-    if (language === 'zh-TW') {
-      // Chinese characters take more visual space, so truncate earlier
-      const chineseMaxLength = Math.floor(maxLength * 0.7);
-      if (content.length <= chineseMaxLength) return content;
-      return content.substring(0, chineseMaxLength) + '...';
+    // For Chinese and Japanese, count characters differently
+    if (language === 'zh-TW' || language === 'ja') {
+      // CJK characters take more visual space, so truncate earlier
+      const cjkMaxLength = Math.floor(maxLength * 0.7);
+      if (content.length <= cjkMaxLength) return content;
+      return content.substring(0, cjkMaxLength) + '...';
     }
     
     // For English, try to break at word boundary
@@ -157,10 +167,7 @@ export default function SharePage() {
       if (isMobileDevice()) {
         const saved = await saveToMobileGallery(dataUrl, filename);
         if (saved) {
-          const successMsg = language === 'zh-TW' 
-            ? '圖片已保存到相簿！' 
-            : 'Image saved to gallery!';
-          alert(successMsg);
+          alert(t.imageSavedToGallery);
           return;
         }
       }
@@ -174,10 +181,7 @@ export default function SharePage() {
       document.body.removeChild(link);
     } catch (error) {
       console.error('Error generating image:', error);
-      const errorMsg = language === 'zh-TW' 
-        ? '生成圖片失敗，請重試。' 
-        : 'Failed to generate image. Please try again.';
-      alert(errorMsg);
+      alert(t.failedToGenerateImage);
     } finally {
       setDownloading(false);
     }
@@ -200,16 +204,10 @@ export default function SharePage() {
       const data = await response.json();
       setNote(data.note);
       
-      const successMsg = language === 'zh-TW' 
-        ? '標題已重新生成！' 
-        : 'Title regenerated!';
-      alert(successMsg);
+      alert(t.titleRegenerated);
     } catch (error) {
       console.error('Error regenerating title:', error);
-      const errorMsg = language === 'zh-TW' 
-        ? '重新生成標題失敗，請重試。' 
-        : 'Failed to regenerate title. Please try again.';
-      alert(errorMsg);
+      alert(t.failedToRegenerateTitle);
     } finally {
       setRegeneratingTitle(false);
     }
@@ -229,7 +227,7 @@ export default function SharePage() {
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
         <p className="text-wood-600 text-lg">Note not found.</p>
         <Link href="/cards" className="text-accent hover:underline mt-2 inline-block">
-          Back to Cards
+          {t.backToCards}
         </Link>
       </div>
     );
@@ -245,18 +243,35 @@ export default function SharePage() {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Note
+          {t.backToNote}
         </Link>
       </div>
 
       <div className="card mb-6">
-        <h2 className="text-2xl font-serif font-bold text-wood-800 mb-4">
-          {language === 'zh-TW' ? '分享圖片預覽' : 'Share Image Preview'}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-serif font-bold text-wood-800">
+            {t.shareImagePreview}
+          </h2>
+          
+          {/* Language Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-wood-700">
+              {language === 'zh-TW' ? '語言' : language === 'ja' ? '言語' : 'Language'}:
+            </label>
+            <select
+              value={language}
+              onChange={(e) => setSelectedLang(e.target.value as AppLanguage)}
+              className="px-3 py-1 border border-wood-300 rounded-lg bg-white text-wood-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="zh-TW">中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+        </div>
+        
         <p className="text-wood-600 mb-4">
-          {language === 'zh-TW' 
-            ? '選擇風格並下載社交媒體分享圖片。' 
-            : 'Choose a style and download a social media share image.'}
+          {t.chooseStyleAndDownload}
         </p>
 
         {/* Regenerate Title Button */}
@@ -266,22 +281,25 @@ export default function SharePage() {
             disabled={regeneratingTitle}
             className="btn-secondary w-full disabled:opacity-50"
           >
-            {regeneratingTitle 
-              ? (language === 'zh-TW' ? '生成中...' : 'Generating...') 
-              : (language === 'zh-TW' ? '🤖 AI 重新生成標題' : '🤖 AI Regenerate Title')
-            }
+            {regeneratingTitle ? t.generating : t.aiRegenerateTitle}
           </button>
         </div>
         
         {/* Style Selector */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-wood-700 mb-2">
-            {language === 'zh-TW' ? '選擇風格' : 'Select Style'}
+            {t.selectStyle}
           </label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {(Object.keys(imageStyles) as ImageStyle[]).map((style) => {
               const styleConfig = imageStyles[style];
               const isSelected = selectedStyle === style;
+              const styleName = language === 'zh-TW' ? styleConfig.nameZh : 
+                               language === 'ja' ? styleConfig.nameJa : 
+                               styleConfig.name;
+              const styleDesc = language === 'zh-TW' ? styleConfig.descriptionZh : 
+                               language === 'ja' ? styleConfig.descriptionJa : 
+                               styleConfig.description;
               return (
                 <button
                   key={style}
@@ -295,10 +313,10 @@ export default function SharePage() {
                   `}
                 >
                   <div className="font-semibold text-sm mb-1">
-                    {language === 'zh-TW' ? styleConfig.nameZh : styleConfig.name}
+                    {styleName}
                   </div>
                   <div className="text-xs opacity-75">
-                    {language === 'zh-TW' ? styleConfig.descriptionZh : styleConfig.description}
+                    {styleDesc}
                   </div>
                 </button>
               );
@@ -311,10 +329,7 @@ export default function SharePage() {
           disabled={downloading}
           className="btn-primary disabled:opacity-50 w-full"
         >
-          {downloading 
-            ? (language === 'zh-TW' ? '生成中...' : 'Generating...') 
-            : (language === 'zh-TW' ? '下載圖片' : 'Download Image')
-          }
+          {downloading ? t.generating : t.downloadImage}
         </button>
       </div>
 
@@ -364,17 +379,23 @@ export default function SharePage() {
               className="font-serif leading-relaxed mb-4 px-4"
               style={{ 
                 color: imageStyles[selectedStyle].textColor,
-                fontFamily: language === 'zh-TW' ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif',
-                fontSize: language === 'zh-TW' ? 'clamp(1.5rem, 4vw, 2rem)' : 'clamp(1.25rem, 3.5vw, 1.75rem)',
+                fontFamily: language === 'zh-TW' 
+                  ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' 
+                  : language === 'ja'
+                  ? 'var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  : 'Georgia, serif',
+                fontSize: (language === 'zh-TW' || language === 'ja') 
+                  ? 'clamp(1.5rem, 4vw, 2rem)' 
+                  : 'clamp(1.25rem, 3.5vw, 1.75rem)',
                 lineHeight: '1.6',
                 maxHeight: '60%',
                 overflow: 'hidden',
                 display: '-webkit-box',
-                WebkitLineClamp: language === 'zh-TW' ? 8 : 6,
+                WebkitLineClamp: (language === 'zh-TW' || language === 'ja') ? 8 : 6,
                 WebkitBoxOrient: 'vertical',
               }}
             >
-              {truncateContent(note.content, language === 'zh-TW' ? 100 : 150)}
+              {truncateContent(note.content, (language === 'zh-TW' || language === 'ja') ? 100 : 150)}
             </p>
             
             {/* Title */}
@@ -382,8 +403,14 @@ export default function SharePage() {
               className="font-serif font-semibold mb-3 px-4"
               style={{ 
                 color: imageStyles[selectedStyle].titleColor,
-                fontFamily: language === 'zh-TW' ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' : 'Georgia, serif',
-                fontSize: language === 'zh-TW' ? 'clamp(1rem, 2.5vw, 1.25rem)' : 'clamp(0.875rem, 2vw, 1.125rem)',
+                fontFamily: language === 'zh-TW' 
+                  ? 'var(--font-noto-sans-tc), "Microsoft JhengHei", "PingFang TC", sans-serif' 
+                  : language === 'ja'
+                  ? 'var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  : 'Georgia, serif',
+                fontSize: (language === 'zh-TW' || language === 'ja') 
+                  ? 'clamp(1rem, 2.5vw, 1.25rem)' 
+                  : 'clamp(0.875rem, 2vw, 1.125rem)',
                 maxWidth: '90%',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',

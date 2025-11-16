@@ -8,15 +8,40 @@ export function isChinese(text: string): boolean {
 }
 
 /**
+ * Detect if text is Japanese
+ */
+export function isJapanese(text: string): boolean {
+  // Check for Hiragana, Katakana, or Kanji with Japanese-specific patterns
+  const hiraganaRegex = /[\u3040-\u309f]/;
+  const katakanaRegex = /[\u30a0-\u30ff]/;
+  const kanjiRegex = /[\u4e00-\u9faf]/;
+  
+  // If contains Hiragana or Katakana, it's likely Japanese
+  if (hiraganaRegex.test(text) || katakanaRegex.test(text)) {
+    return true;
+  }
+  
+  // If contains Kanji, check for Japanese-specific patterns
+  if (kanjiRegex.test(text)) {
+    // Japanese often uses specific particles and patterns
+    const japaneseParticles = /[のをにでがはと]/;
+    return japaneseParticles.test(text);
+  }
+  
+  return false;
+}
+
+/**
  * Detect if text is primarily English
  */
 export function isEnglish(text: string): boolean {
   // Check if text contains mostly English characters
   const englishRegex = /^[a-zA-Z0-9\s\.,!?'"\-:;()\[\]{}]+$/;
   const chineseRegex = /[\u4e00-\u9fff]/;
+  const japaneseRegex = /[\u3040-\u309f\u30a0-\u30ff]/;
   
-  // If contains Chinese, it's not English
-  if (chineseRegex.test(text)) {
+  // If contains Chinese or Japanese, it's not English
+  if (chineseRegex.test(text) || japaneseRegex.test(text)) {
     return false;
   }
   
@@ -30,7 +55,10 @@ export function isEnglish(text: string): boolean {
 /**
  * Detect language of text
  */
-export function detectLanguage(text: string): 'zh-TW' | 'en' {
+export function detectLanguage(text: string): 'zh-TW' | 'en' | 'ja' {
+  if (isJapanese(text)) {
+    return 'ja';
+  }
   if (isChinese(text)) {
     return 'zh-TW';
   }
