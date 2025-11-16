@@ -106,7 +106,7 @@ export default function DailyPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-serif font-bold text-wood-800">
-          Daily Inspiration
+          {t.navDaily}
         </h1>
         <div className="flex gap-2">
           <button
