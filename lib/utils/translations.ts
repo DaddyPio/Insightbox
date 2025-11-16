@@ -47,6 +47,12 @@ export interface Translations {
   processing: string;
   saveNote: string;
   footerCopyright: string;
+  
+  // Auth
+  loggedIn: string;
+  logout: string;
+  register: string;
+  login: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -84,6 +90,10 @@ export const translations: Record<AppLanguage, Translations> = {
     processing: '處理中…',
     saveNote: '儲存筆記',
     footerCopyright: 'APP版權為 DaddyPio',
+    loggedIn: '已登入',
+    logout: '登出',
+    register: '註冊',
+    login: '登入',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -119,6 +129,10 @@ export const translations: Record<AppLanguage, Translations> = {
     processing: 'Processing...',
     saveNote: 'Save Note',
     footerCopyright: 'App Copyright © DaddyPio',
+    loggedIn: 'Logged in',
+    logout: 'Logout',
+    register: 'Register',
+    login: 'Login',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -154,6 +168,10 @@ export const translations: Record<AppLanguage, Translations> = {
     processing: '処理中...',
     saveNote: 'ノートを保存',
     footerCopyright: 'アプリの著作権 © DaddyPio',
+    loggedIn: 'ログイン中',
+    logout: 'ログアウト',
+    register: '登録',
+    login: 'ログイン',
   },
 };
 

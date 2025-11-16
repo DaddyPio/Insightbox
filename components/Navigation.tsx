@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -117,10 +118,9 @@ export default function Navigation() {
             </button>
           </div>
 
-          {/* Desktop auth links */}
-          <div className="hidden md:flex items-center gap-2">
-            <Link href="/signup" className="btn-secondary">註冊</Link>
-            <Link href="/login" className="btn-primary">登入</Link>
+          {/* Desktop auth / user info */}
+          <div className="hidden md:flex items-center gap-3">
+            <UserInfo language={language} onMobileMenuClose={() => setMobileMenuOpen(false)} />
           </div>
         </div>
 
@@ -173,13 +173,119 @@ export default function Navigation() {
                 {t.navWeeklyReview}
               </Link>
 
-              <Link href="/signup" className="px-3 py-2 mx-3 my-1 rounded-lg border border-wood-300 bg-wood-50 text-wood-700 text-center">註冊</Link>
-              <Link href="/login" className="px-3 py-2 mx-3 my-1 rounded-lg bg-accent text-white text-center">登入</Link>
+              <UserInfo mobile language={language} onMobileMenuClose={() => setMobileMenuOpen(false)} />
             </div>
           </div>
         )}
       </div>
     </nav>
+  );
+}
+
+// 使用者資訊顯示（顯示登入狀態、Email 和登出按鈕）
+function UserInfo({ 
+  mobile = false, 
+  language,
+  onMobileMenuClose 
+}: { 
+  mobile?: boolean; 
+  language: AppLanguage;
+  onMobileMenuClose?: () => void;
+}) {
+  const [email, setEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const t = getTranslation(language);
+
+  useEffect(() => {
+    // 從 Supabase 取得目前使用者 Email
+    const sync = async () => {
+      const { data } = await supabaseBrowser.auth.getUser();
+      setEmail(data.user?.email ?? null);
+      setLoading(false);
+    };
+    
+    sync();
+    
+    // 監聽登入狀態變化
+    const { data: listener } = supabaseBrowser.auth.onAuthStateChange(() => {
+      sync();
+    });
+    
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabaseBrowser.auth.signOut();
+    setEmail(null);
+  };
+
+  if (loading) {
+    return null; // 載入中不顯示任何內容
+  }
+
+  // 已登入：顯示 Email 和登出按鈕
+  if (email) {
+    if (mobile) {
+      return (
+        <>
+          <div className="px-3 py-2 mx-3 my-1 rounded-lg bg-wood-50 text-wood-700 text-center text-sm">
+            {t.loggedIn}：{email}
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="px-3 py-2 mx-3 my-1 rounded-lg border border-wood-300 bg-wood-50 text-wood-700 text-center"
+          >
+            {t.logout}
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-wood-700">
+          {t.loggedIn}：<span className="font-medium">{email}</span>
+        </span>
+        <button onClick={handleSignOut} className="btn-secondary">
+          {t.logout}
+        </button>
+      </div>
+    );
+  }
+
+  // 未登入：顯示註冊和登入按鈕
+  if (mobile) {
+    return (
+      <>
+        <Link 
+          href="/signup" 
+          onClick={onMobileMenuClose}
+          className="px-3 py-2 mx-3 my-1 rounded-lg border border-wood-300 bg-wood-50 text-wood-700 text-center"
+        >
+          {t.register}
+        </Link>
+        <Link 
+          href="/login" 
+          onClick={onMobileMenuClose}
+          className="px-3 py-2 mx-3 my-1 rounded-lg bg-accent text-white text-center"
+        >
+          {t.login}
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <Link href="/signup" className="btn-secondary">
+        {t.register}
+      </Link>
+      <Link href="/login" className="btn-primary">
+        {t.login}
+      </Link>
+    </div>
   );
 }
 
