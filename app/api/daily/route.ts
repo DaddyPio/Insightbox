@@ -179,7 +179,12 @@ ${selectedText}
         break;
       }
     }
-    normalized.song.youtube_url = picked;
+    // Fallback: build a YouTube search link by title + artist to ensure user can click and play
+    if (!picked && (normalized.song.title || normalized.song.artist)) {
+      const q = encodeURIComponent(`${normalized.song.title || ''} ${normalized.song.artist || ''} official`.trim());
+      picked = `https://www.youtube.com/results?search_query=${q}`;
+    }
+    normalized.song.youtube_url = picked || '';
     delete (normalized.song as any).youtube_candidates;
 
     // Upsert by date

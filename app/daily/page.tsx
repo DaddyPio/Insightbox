@@ -230,7 +230,7 @@ export default function DailyPage() {
                             rel="noopener noreferrer"
                             className="underline"
                           >
-                            YouTube
+                            {inspiration.content_json.song.youtube_url.includes('/results?search_query=') ? 'Search on YouTube' : 'YouTube'}
                           </a>
                         </>
                       )}
