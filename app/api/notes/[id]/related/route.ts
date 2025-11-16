@@ -67,7 +67,7 @@ export async function GET(
     // Return in the order suggested by AI
     const orderedNotes = relatedIds
       .map(id => relatedNotes.find(note => note.id === id))
-      .filter((note): note is Note => note !== undefined) as Note[];
+      .filter((note): note is Note => note !== undefined);
 
     return NextResponse.json({ notes: orderedNotes });
   } catch (error) {
