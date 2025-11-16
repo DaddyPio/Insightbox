@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
-import Link from 'next/link';
 
 export default function Navigation() {
   const pathname = usePathname();
