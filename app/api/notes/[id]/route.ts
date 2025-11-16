@@ -64,7 +64,14 @@ export async function PUT(
     // Extract updatable fields
     const { title, content, tags, summary, topic, emotion } = body;
 
-    const updateData: any = {};
+    const updateData: {
+      title?: string;
+      content?: string;
+      tags?: string[];
+      summary?: string;
+      topic?: string;
+      emotion?: string;
+    } = {};
     if (title !== undefined) updateData.title = title;
     if (content !== undefined) updateData.content = content;
     if (tags !== undefined) updateData.tags = tags;
