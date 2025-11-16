@@ -129,54 +129,23 @@ export default function SharePage() {
                      selectedStyle === 'modern' ? '#667eea' :
                      selectedStyle === 'elegant' ? '#f5f7fa' : '#f093fb';
       
-      // Store original styles
-      const originalElement = imageRef.current;
-      const originalStyles = {
-        position: originalElement.style.position,
-        left: originalElement.style.left,
-        top: originalElement.style.top,
-        transform: originalElement.style.transform,
-        visibility: originalElement.style.visibility,
-        zIndex: originalElement.style.zIndex,
-      };
-      
-      // Get the actual rendered dimensions
-      const previewWidth = originalElement.offsetWidth || 540;
-      const previewHeight = originalElement.offsetHeight || 675;
-      
-      // Temporarily move element off-screen but keep all styles intact
-      originalElement.style.position = 'fixed';
-      originalElement.style.left = '-9999px';
-      originalElement.style.top = '0';
-      originalElement.style.transform = 'none';
-      originalElement.style.visibility = 'visible';
-      originalElement.style.zIndex = '9999';
-      
-      // Wait for layout to settle
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Ensure all fonts are loaded
+      // Ensure all fonts and layout are ready
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
       if (document.fonts) {
         await document.fonts.ready;
       }
-      
-      // Wait a bit more for any background images to load
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Generate image from the actual preview element with high pixel ratio
-      // This will create a high-resolution version while keeping the exact same appearance
-      const dataUrl = await toPng(originalElement, {
+
+      // Generate image from the actual preview element，保持與預覽完全一致
+      const dataUrl = await toPng(imageRef.current, {
         quality: 1.0,
-        pixelRatio: 2, // 2x resolution for high quality
+        pixelRatio: 2, // 高解析輸出，但不改變視覺效果
         backgroundColor: bgColor,
         cacheBust: true,
         fontEmbedCSS: `
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
         `,
       });
-
-      // Restore original styles
-      Object.assign(originalElement.style, originalStyles);
 
       const filename = `insightbox-${note.id}-${selectedStyle}.png`;
 
