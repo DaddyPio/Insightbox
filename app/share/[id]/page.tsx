@@ -129,68 +129,54 @@ export default function SharePage() {
                      selectedStyle === 'modern' ? '#667eea' :
                      selectedStyle === 'elegant' ? '#f5f7fa' : '#f093fb';
       
-      // Use optimal social media size: 1080x1350 (4:5 ratio, perfect for Instagram, Facebook)
-      const targetWidth = 1080;
-      const targetHeight = 1350;
-      
-      // Create a deep clone of the element
+      // Store original styles
       const originalElement = imageRef.current;
-      const clonedElement = originalElement.cloneNode(true) as HTMLElement;
+      const originalStyles = {
+        position: originalElement.style.position,
+        left: originalElement.style.left,
+        top: originalElement.style.top,
+        transform: originalElement.style.transform,
+        visibility: originalElement.style.visibility,
+        zIndex: originalElement.style.zIndex,
+      };
       
-      // Set up the cloned element for rendering
-      clonedElement.style.width = `${targetWidth}px`;
-      clonedElement.style.height = `${targetHeight}px`;
-      clonedElement.style.position = 'absolute';
-      clonedElement.style.left = '0';
-      clonedElement.style.top = '0';
-      clonedElement.style.margin = '0';
-      clonedElement.style.padding = '0';
-      clonedElement.style.transform = 'none';
-      clonedElement.style.visibility = 'visible';
-      clonedElement.style.opacity = '1';
-      clonedElement.style.zIndex = '9999';
-      clonedElement.style.backgroundImage = style.background;
-      clonedElement.style.backgroundColor = bgColor;
+      // Get the actual rendered dimensions
+      const previewWidth = originalElement.offsetWidth || 540;
+      const previewHeight = originalElement.offsetHeight || 675;
       
-      // Create a container for the cloned element
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.width = `${targetWidth}px`;
-      container.style.height = `${targetHeight}px`;
-      container.style.overflow = 'hidden';
-      container.style.backgroundColor = bgColor;
-      container.appendChild(clonedElement);
+      // Temporarily move element off-screen but keep all styles intact
+      originalElement.style.position = 'fixed';
+      originalElement.style.left = '-9999px';
+      originalElement.style.top = '0';
+      originalElement.style.transform = 'none';
+      originalElement.style.visibility = 'visible';
+      originalElement.style.zIndex = '9999';
       
-      // Append to body
-      document.body.appendChild(container);
-      
-      // Wait for layout and fonts
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Ensure all fonts are loaded
       if (document.fonts) {
         await document.fonts.ready;
       }
       
-      // Wait a bit more for any background images
+      // Wait a bit more for any background images to load
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      const dataUrl = await toPng(clonedElement, {
+      // Generate image from the actual preview element with high pixel ratio
+      // This will create a high-resolution version while keeping the exact same appearance
+      const dataUrl = await toPng(originalElement, {
         quality: 1.0,
-        pixelRatio: 2,
+        pixelRatio: 2, // 2x resolution for high quality
         backgroundColor: bgColor,
-        width: targetWidth,
-        height: targetHeight,
         cacheBust: true,
         fontEmbedCSS: `
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
         `,
       });
 
-      // Clean up
-      document.body.removeChild(container);
+      // Restore original styles
+      Object.assign(originalElement.style, originalStyles);
 
       const filename = `insightbox-${note.id}-${selectedStyle}.png`;
 
