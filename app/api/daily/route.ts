@@ -119,12 +119,16 @@ ${selectedText}
     // Upsert by date
     const { data: upserted, error: upsertError } = await supabaseAdmin
       .from('daily_inspiration')
-      .upsert({ date: today, content_json: parsed })
+      .upsert({ date: today, content_json: parsed }, { onConflict: 'date' })
       .select()
       .single();
 
     if (upsertError) {
-      return NextResponse.json({ error: 'Failed to save daily inspiration', details: upsertError.message }, { status: 500 });
+      console.error('Upsert error (daily_inspiration):', upsertError);
+      return NextResponse.json(
+        { error: 'Failed to save daily inspiration', details: upsertError.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ inspiration: upserted });
