@@ -135,6 +135,17 @@ export default function Navigation() {
                 {t.navCards}
               </Link>
               <Link 
+                href="/daily" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname === '/daily' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                Daily
+              </Link>
+              <Link 
                 href="/weekly" 
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
