@@ -1,7 +1,8 @@
 // @ts-nocheck - Supabase type inference issue with conditional client
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/types';
+import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 
 /**
  * GET /api/notes/[id]
@@ -12,7 +13,12 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    // Require login
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
         { error: 'Supabase is not configured' },
         { status: 500 }
@@ -21,7 +27,8 @@ export async function GET(
 
     const { id } = params;
 
-    const { data: note, error } = await supabaseAdmin
+    const supabase = supabaseFromRequest(request);
+    const { data: note, error } = await supabase
       .from('notes')
       .select('*')
       .eq('id', id)
@@ -53,7 +60,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!isSupabaseConfigured() || !supabaseAdmin) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
         { error: 'Supabase is not configured' },
         { status: 500 }

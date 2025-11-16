@@ -36,6 +36,10 @@ function getTodayISODate(): string {
  */
 export async function GET(request: NextRequest) {
   try {
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
     }
@@ -65,6 +69,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
     }

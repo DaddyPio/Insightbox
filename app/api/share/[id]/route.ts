@@ -12,6 +12,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Require login
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { id } = params;
 
     const supabase = supabaseFromRequest(request);

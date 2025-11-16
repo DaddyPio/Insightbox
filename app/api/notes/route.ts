@@ -129,6 +129,11 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Require login for listing notes
+    const hasAuth = !!request.headers.get('authorization');
+    if (!hasAuth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     // Check environment variables
     if (!isSupabaseConfigured()) {
       return NextResponse.json(
