@@ -16,6 +16,7 @@ Hard rules:
       "title": string, 
       "artist": string, 
       "youtube_url": string,         // direct YouTube watch/listen URL
+      "youtube_candidates": string[],// 2-3 alternative public YouTube links
       "reason": string               // why this song matches the message in 1 short sentence
     }
   }
@@ -137,6 +138,16 @@ ${selectedText}
       return m ? m[0] : '';
     };
 
+    async function isPlayableYouTube(url: string): Promise<boolean> {
+      if (!url) return false;
+      try {
+        const resp = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+        return resp.ok;
+      } catch {
+        return false;
+      }
+    }
+
     const normalized = {
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
@@ -146,9 +157,30 @@ ${selectedText}
         youtube_url: parsed?.song?.youtube_url
           ? parsed.song.youtube_url.toString().trim()
           : toYoutube(parsed?.song?.reason || ''),
+        youtube_candidates: Array.isArray(parsed?.song?.youtube_candidates)
+          ? parsed.song.youtube_candidates.map((u: any) => u?.toString?.().trim()).filter(Boolean).slice(0, 3)
+          : [],
         reason: parsed?.song?.reason ? parsed.song.reason.toString().trim() : '',
       },
     };
+
+    // Validate youtube link; fallback to candidates; keep empty if none valid
+    const candidates = [
+      normalized.song.youtube_url,
+      ...normalized.song.youtube_candidates,
+    ].filter(Boolean);
+    let picked = '';
+    for (const url of candidates) {
+      // Quick format check
+      const validFormat = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)/i.test(url);
+      if (!validFormat) continue;
+      if (await isPlayableYouTube(url)) {
+        picked = url;
+        break;
+      }
+    }
+    normalized.song.youtube_url = picked;
+    delete (normalized.song as any).youtube_candidates;
 
     // Upsert by date
     const { data: upserted, error: upsertError } = await supabaseAdmin
