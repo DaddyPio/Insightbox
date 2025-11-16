@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
+import type { Database } from '@/lib/supabase/types';
 
 /**
  * GET /api/notes/[id]
@@ -64,14 +65,7 @@ export async function PUT(
     // Extract updatable fields
     const { title, content, tags, summary, topic, emotion } = body;
 
-    const updateData: {
-      title?: string;
-      content?: string;
-      tags?: string[];
-      summary?: string;
-      topic?: string;
-      emotion?: string;
-    } = {};
+    const updateData: Database['public']['Tables']['notes']['Update'] = {};
     if (title !== undefined) updateData.title = title;
     if (content !== undefined) updateData.content = content;
     if (tags !== undefined) updateData.tags = tags;
