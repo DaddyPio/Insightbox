@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
-import dynamic from 'next/dynamic';
-
-const AuthButton = dynamic(() => import('@/components/AuthButton'), { ssr: false });
+import Link from 'next/link';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -120,9 +118,10 @@ export default function Navigation() {
             </button>
           </div>
 
-          {/* Desktop auth */}
-          <div className="hidden md:flex items-center gap-4">
-            <AuthButton />
+          {/* Desktop auth links */}
+          <div className="hidden md:flex items-center gap-2">
+            <Link href="/signup" className="btn-secondary">註冊</Link>
+            <Link href="/login" className="btn-primary">登入</Link>
           </div>
         </div>
 
@@ -175,9 +174,8 @@ export default function Navigation() {
                 {t.navWeeklyReview}
               </Link>
 
-              <div className="px-3">
-                <AuthButton />
-              </div>
+              <Link href="/signup" className="px-3 py-2 mx-3 my-1 rounded-lg border border-wood-300 bg-wood-50 text-wood-700 text-center">註冊</Link>
+              <Link href="/login" className="px-3 py-2 mx-3 my-1 rounded-lg bg-accent text-white text-center">登入</Link>
             </div>
           </div>
         )}

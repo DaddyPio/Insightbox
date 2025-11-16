@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
-export default function AuthButton() {
+export default function AuthButton({ submitLabel = '登入連結' }: { submitLabel?: string }) {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export default function AuthButton() {
           className="input-field w-44 sm:w-56"
         />
         <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50">
-          {sending ? '寄送中...' : '登入連結'}
+          {sending ? '寄送中...' : submitLabel}
         </button>
       </form>
       {info && <span className="text-xs text-wood-600">{info}</span>}
