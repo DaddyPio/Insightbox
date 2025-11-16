@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/server';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server';
 import { findRelatedNotes } from '@/lib/openai/utils';
 import type { Note } from '@/lib/supabase/types';
 
@@ -12,6 +12,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!isSupabaseConfigured() || !supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Supabase is not configured' },
+        { status: 500 }
+      );
+    }
+
     const { id } = params;
 
     // Get the current note
