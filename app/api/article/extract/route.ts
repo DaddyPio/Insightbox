@@ -4,6 +4,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/server';
 import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 
+export const dynamic = 'force-dynamic';
+
 const EXTRACTION_PROMPT = `
 You are a content strategist analyzing user notes to extract deep insights.
 

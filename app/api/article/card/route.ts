@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 
+export const dynamic = 'force-dynamic';
+
 const CARD_PROMPT = `
 You are creating social media card content from an article.
 

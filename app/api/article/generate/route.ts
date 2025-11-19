@@ -4,6 +4,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/server';
 import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 
+export const dynamic = 'force-dynamic';
+
 const ARTICLE_PROMPT = `
 You are a professional content writer creating a 500-1000 word article.
 

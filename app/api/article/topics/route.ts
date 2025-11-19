@@ -4,6 +4,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/server';
 import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 
+export const dynamic = 'force-dynamic';
+
 const TOPICS_PROMPT = `
 You are a content strategist creating article topics based on user notes and mentor philosophy.
 

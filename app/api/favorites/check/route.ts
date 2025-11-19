@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { isSupabaseConfigured } from '@/lib/supabase/server';
 import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 
