@@ -163,11 +163,13 @@ export default function CreatePage() {
       }
       
       setExtraction(data.extraction);
+      setError(null); // Clear any previous errors
       setStep(3);
       
       // Generate topics automatically after a short delay
+      // Pass extraction data directly to avoid state timing issues
       setTimeout(() => {
-        handleStep4();
+        handleStep4WithData(data.extraction);
       }, 1000);
     } catch (e: any) {
       setError(e?.message || 'Failed to extract content');
@@ -181,6 +183,14 @@ export default function CreatePage() {
       setError('請先完成內容萃取');
       return;
     }
+    await handleStep4WithData(extraction);
+  }
+
+  async function handleStep4WithData(extractionData: any) {
+    if (!extractionData) {
+      setError('請先完成內容萃取');
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -188,7 +198,7 @@ export default function CreatePage() {
       console.log('Generating topics with:', {
         noteIds: selectedNoteIds,
         mentorStyle: selectedMentor,
-        extraction: extraction,
+        extraction: extractionData,
       });
       
       const res = await authFetch('/api/article/topics', {
@@ -197,7 +207,7 @@ export default function CreatePage() {
         body: JSON.stringify({
           noteIds: selectedNoteIds,
           mentorStyle: selectedMentor,
-          extraction,
+          extraction: extractionData,
         }),
       });
       
