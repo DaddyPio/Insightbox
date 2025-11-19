@@ -91,6 +91,10 @@ export interface Translations {
   articleContent: string;
   cardStyleReflection: string;
   cardStyleAction: string;
+  
+  // Daily Inspiration Algorithm
+  algorithmNote: string;
+  algorithmTitle: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -166,6 +170,8 @@ export const translations: Record<AppLanguage, Translations> = {
     articleContent: '文章內容',
     cardStyleReflection: '深度反思版',
     cardStyleAction: '行動短句版',
+    algorithmNote: '演算法說明',
+    algorithmTitle: '每日雞湯演算法說明',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -239,6 +245,8 @@ export const translations: Record<AppLanguage, Translations> = {
     articleContent: 'Article Content',
     cardStyleReflection: 'Reflection Style',
     cardStyleAction: 'Action Style',
+    algorithmNote: 'Algorithm Info',
+    algorithmTitle: 'Daily Inspiration Algorithm',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -312,6 +320,8 @@ export const translations: Record<AppLanguage, Translations> = {
     articleContent: '記事コンテンツ',
     cardStyleReflection: 'リフレクションスタイル',
     cardStyleAction: 'アクションスタイル',
+    algorithmNote: 'アルゴリズム情報',
+    algorithmTitle: 'デイリーインスピレーションアルゴリズム',
   },
 };
 

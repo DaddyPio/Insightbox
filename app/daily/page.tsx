@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
+import Link from 'next/link';
 import { imageStyles } from '@/lib/utils/imageStyles';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
@@ -382,6 +383,16 @@ export default function DailyPage() {
           </div>
         </div>
       )}
+
+      {/* Algorithm Note Link */}
+      <div className="mt-8 text-center">
+        <Link 
+          href="/daily/about" 
+          className="text-sm text-wood-500 hover:text-wood-700 underline"
+        >
+          {t.algorithmNote}
+        </Link>
+      </div>
     </div>
   );
 }
