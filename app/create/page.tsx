@@ -132,11 +132,30 @@ export default function CreatePage() {
           mentorStyle: selectedMentor,
         }),
       });
+      const responseText = await res.text();
+      console.log('Extract API response status:', res.status);
+      console.log('Extract API response:', responseText);
+      
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to extract content');
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || 'Failed to extract content' };
+        }
+        const errorMsg = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : errorData.error || 'Failed to extract content';
+        throw new Error(errorMsg);
       }
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('Invalid response from server');
+      }
+      
       console.log('Extraction data received:', data);
       
       if (!data.extraction) {
