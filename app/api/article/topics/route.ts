@@ -121,18 +121,35 @@ Generate 5 article topics following the JSON format specified.
     });
 
     const raw = completion.choices[0]?.message?.content?.trim() || '{}';
-    console.log('Raw topics response:', raw);
+    console.log('Raw topics response:', raw.substring(0, 500));
     
     let parsed;
     try {
-      parsed = JSON.parse(raw);
+      // Remove markdown code blocks if present
+      let cleanedRaw = raw;
+      if (cleanedRaw.includes('```json')) {
+        cleanedRaw = cleanedRaw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      } else if (cleanedRaw.includes('```')) {
+        cleanedRaw = cleanedRaw.replace(/```\s*/g, '').trim();
+      }
+      
+      parsed = JSON.parse(cleanedRaw);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      // Try to extract JSON block
-      const match = raw.match(/\{[\s\S]*\}$/);
-      if (match) {
+      console.error('Raw response preview:', raw.substring(0, 500));
+      
+      // Try to extract JSON block (handle markdown code blocks)
+      let jsonMatch = raw.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/```\s*(\{[\s\S]*?\})\s*```/);
+      }
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/\{[\s\S]*\}/);
+      }
+      
+      if (jsonMatch) {
         try {
-          parsed = JSON.parse(match[0]);
+          parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
         } catch {
           parsed = { topics: [] };
         }
@@ -154,17 +171,32 @@ Generate 5 article topics following the JSON format specified.
 
     // Filter out invalid topics and ensure we have valid ones
     const validTopics = parsed.topics
-      .filter((t: any) => t && t.title && t.title !== 'Topic 1' && t.title !== 'To be generated')
+      .filter((t: any) => {
+        if (!t || typeof t !== 'object') return false;
+        // Check if title exists and is not a placeholder
+        const title = t.title?.toString().trim() || '';
+        if (!title || title.length === 0) return false;
+        if (title.toLowerCase() === 'topic 1' || 
+            title.toLowerCase() === 'to be generated' ||
+            title.toLowerCase().startsWith('topic ')) {
+          return false;
+        }
+        return true;
+      })
       .slice(0, 5);
 
-    if (validTopics.length < 5) {
+    // If we have at least 3 valid topics, accept them (more lenient)
+    if (validTopics.length < 3) {
       console.error('Not enough valid topics generated:', validTopics.length);
+      console.error('All topics:', parsed.topics);
       return NextResponse.json(
-        { error: 'Failed to generate enough topics', details: `Only generated ${validTopics.length} valid topics` },
+        { error: 'Failed to generate enough topics', details: `Only generated ${validTopics.length} valid topics. Need at least 3.` },
         { status: 500 }
       );
     }
 
+    // If we have 3-4 topics, that's acceptable
+    // If we have 5, perfect
     return NextResponse.json({ topics: validTopics });
   } catch (error: any) {
     console.error('POST /api/article/topics error:', error);

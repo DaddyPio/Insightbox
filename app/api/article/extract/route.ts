@@ -193,15 +193,31 @@ Extract insights following the JSON format specified.
     
     let parsed;
     try {
-      parsed = JSON.parse(raw);
+      // Remove markdown code blocks if present
+      let cleanedRaw = raw;
+      if (cleanedRaw.includes('```json')) {
+        cleanedRaw = cleanedRaw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      } else if (cleanedRaw.includes('```')) {
+        cleanedRaw = cleanedRaw.replace(/```\s*/g, '').trim();
+      }
+      
+      parsed = JSON.parse(cleanedRaw);
     } catch (parseError: any) {
       console.error('JSON parse error:', parseError);
-      console.error('Raw response that failed to parse:', raw);
-      // Try to extract JSON block
-      const match = raw.match(/\{[\s\S]*\}$/);
-      if (match) {
+      console.error('Raw response that failed to parse:', raw.substring(0, 500));
+      
+      // Try to extract JSON block (handle markdown code blocks)
+      let jsonMatch = raw.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/```\s*(\{[\s\S]*?\})\s*```/);
+      }
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/\{[\s\S]*\}/);
+      }
+      
+      if (jsonMatch) {
         try {
-          parsed = JSON.parse(match[0]);
+          parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
         } catch {
           // If still fails, try to create a basic structure from the text
           parsed = {
@@ -222,6 +238,31 @@ Extract insights following the JSON format specified.
           emotional_direction: 'neutral',
         };
       }
+    }
+    
+    // Clean up key_points if they contain JSON strings
+    if (parsed.key_points && Array.isArray(parsed.key_points)) {
+      parsed.key_points = parsed.key_points.map((point: any) => {
+        if (typeof point === 'string') {
+          // Remove markdown code blocks
+          let cleaned = point.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+          // Try to parse if it looks like JSON
+          if (cleaned.startsWith('{') || cleaned.startsWith('[')) {
+            try {
+              const parsedPoint = JSON.parse(cleaned);
+              // If parsed successfully and has key_points, extract them
+              if (parsedPoint.key_points && Array.isArray(parsedPoint.key_points)) {
+                return parsedPoint.key_points[0] || point;
+              }
+              return point;
+            } catch {
+              return cleaned;
+            }
+          }
+          return cleaned;
+        }
+        return point;
+      }).filter((point: any) => point && typeof point === 'string' && point.length > 0);
     }
 
     console.log('Parsed extraction:', JSON.stringify(parsed, null, 2));
