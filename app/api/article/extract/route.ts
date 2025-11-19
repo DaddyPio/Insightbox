@@ -56,19 +56,50 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch selected notes
-    const { data: notes, error: notesError } = await supabase
-      .from('notes')
-      .select('id, title, content, tags')
-      .in('id', noteIds);
+    let notes;
+    try {
+      const { data, error: notesError } = await supabase
+        .from('notes')
+        .select('id, title, content, tags')
+        .in('id', noteIds);
 
-    if (notesError || !notes || notes.length === 0) {
-      return NextResponse.json({ error: 'Failed to fetch notes' }, { status: 500 });
+      if (notesError) {
+        console.error('Supabase notes fetch error:', notesError);
+        return NextResponse.json(
+          { error: 'Failed to fetch notes', details: notesError.message },
+          { status: 500 }
+        );
+      }
+
+      if (!data || data.length === 0) {
+        return NextResponse.json(
+          { error: 'No notes found', details: 'Selected notes do not exist' },
+          { status: 404 }
+        );
+      }
+
+      notes = data;
+    } catch (fetchError: any) {
+      console.error('Error fetching notes:', fetchError);
+      return NextResponse.json(
+        { error: 'Failed to fetch notes', details: fetchError?.message || 'Unknown error' },
+        { status: 500 }
+      );
     }
 
-    const notesText = notes.map((n, i) => {
+    const notesText = notes.map((n: any, i: number) => {
       const tags = Array.isArray(n.tags) ? n.tags.join(', ') : '';
-      return `Note ${i + 1}:\nTitle: ${n.title || '(no title)'}\nContent: ${n.content}\nTags: ${tags}`;
+      const content = n.content || '';
+      const title = n.title || '(no title)';
+      return `Note ${i + 1}:\nTitle: ${title}\nContent: ${content}\nTags: ${tags}`;
     }).join('\n\n');
+
+    if (!notesText || notesText.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid notes data', details: 'Notes content is empty' },
+        { status: 400 }
+      );
+    }
 
     const userPrompt = `
 Mentor Style: ${mentorStyle}
