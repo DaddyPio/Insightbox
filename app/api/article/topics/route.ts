@@ -7,28 +7,38 @@ import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 const TOPICS_PROMPT = `
 You are a content strategist creating article topics based on user notes and mentor philosophy.
 
-Generate 5 article topics. Each topic must include:
-- title: Attractive article title
-- angle: Why write this (the unique perspective)
-- connection_to_notes: How it connects to the main content
+CRITICAL: You MUST generate exactly 5 unique, creative article topics. Each topic must be different and compelling.
+
+Each topic must include:
+- title: Attractive, specific article title (NOT generic like "Topic 1")
+- angle: Why write this (the unique perspective, what makes it interesting)
+- connection_to_notes: How it connects to the main content from notes
 - connection_to_mentor: How it connects to the mentor's philosophy
 - platform: Suitable platform (FB / IG / Blog)
 
-Output JSON ONLY:
+Output JSON ONLY (no other text):
 {
   "topics": [
     {
-      "title": string,
-      "angle": string,
-      "connection_to_notes": string,
-      "connection_to_mentor": string,
-      "platform": "FB" | "IG" | "Blog"
+      "title": "具體的標題，不是 Topic 1",
+      "angle": "為什麼要寫這個主題的獨特觀點",
+      "connection_to_notes": "如何與筆記內容連接",
+      "connection_to_mentor": "如何與導師哲學連接",
+      "platform": "FB"
     },
-    ... (5 topics total)
+    {
+      "title": "另一個具體的標題",
+      "angle": "另一個獨特觀點",
+      "connection_to_notes": "連接說明",
+      "connection_to_mentor": "連接說明",
+      "platform": "IG"
+    },
+    ... (exactly 5 topics, all with unique titles)
   ]
 }
 
 Language must match the input notes (zh-TW, en, or ja).
+DO NOT use placeholder text like "Topic 1", "To be generated", etc. All fields must be real, specific content.
 `.trim();
 
 export async function POST(request: NextRequest) {
@@ -93,36 +103,55 @@ Generate 5 article topics following the JSON format specified.
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.8,
-      max_completion_tokens: 800,
+      max_completion_tokens: 1200, // Increased for 5 topics
     });
 
     const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+    console.log('Raw topics response:', raw);
+    
     let parsed;
     try {
       parsed = JSON.parse(raw);
-    } catch {
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      // Try to extract JSON block
       const match = raw.match(/\{[\s\S]*\}$/);
-      parsed = match ? JSON.parse(match[0]) : { topics: [] };
-    }
-
-    // Ensure we have exactly 5 topics
-    if (!parsed.topics || !Array.isArray(parsed.topics)) {
-      parsed.topics = [];
-    }
-    if (parsed.topics.length < 5) {
-      // Fill with placeholder topics if needed
-      while (parsed.topics.length < 5) {
-        parsed.topics.push({
-          title: `Topic ${parsed.topics.length + 1}`,
-          angle: 'To be generated',
-          connection_to_notes: 'Connects to selected notes',
-          connection_to_mentor: 'Connects to mentor philosophy',
-          platform: 'Blog',
-        });
+      if (match) {
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch {
+          parsed = { topics: [] };
+        }
+      } else {
+        parsed = { topics: [] };
       }
     }
 
-    return NextResponse.json({ topics: parsed.topics.slice(0, 5) });
+    console.log('Parsed topics:', JSON.stringify(parsed, null, 2));
+
+    // Validate and ensure we have exactly 5 topics
+    if (!parsed.topics || !Array.isArray(parsed.topics)) {
+      console.error('Invalid topics format:', parsed);
+      return NextResponse.json(
+        { error: 'Failed to generate topics', details: 'Invalid response format from AI' },
+        { status: 500 }
+      );
+    }
+
+    // Filter out invalid topics and ensure we have valid ones
+    const validTopics = parsed.topics
+      .filter((t: any) => t && t.title && t.title !== 'Topic 1' && t.title !== 'To be generated')
+      .slice(0, 5);
+
+    if (validTopics.length < 5) {
+      console.error('Not enough valid topics generated:', validTopics.length);
+      return NextResponse.json(
+        { error: 'Failed to generate enough topics', details: `Only generated ${validTopics.length} valid topics` },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ topics: validTopics });
   } catch (error: any) {
     console.error('POST /api/article/topics error:', error);
     return NextResponse.json({ error: error?.message || 'Internal error' }, { status: 500 });

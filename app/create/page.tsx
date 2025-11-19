@@ -164,12 +164,20 @@ export default function CreatePage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to generate topics');
+        const errorMsg = data.details 
+          ? `${data.error}: ${data.details}` 
+          : data.error || 'Failed to generate topics';
+        throw new Error(errorMsg);
       }
       const data = await res.json();
-      setTopics(data.topics || []);
+      console.log('Received topics:', data);
+      if (!data.topics || data.topics.length === 0) {
+        throw new Error('No topics generated. Please try again.');
+      }
+      setTopics(data.topics);
       setStep(4);
     } catch (e: any) {
+      console.error('Error generating topics:', e);
       setError(e?.message || 'Failed to generate topics');
     } finally {
       setLoading(false);
