@@ -196,16 +196,34 @@ ${allNotesText}
       }
     }
 
-    // Ensure song is always present - if missing, provide a fallback
-    const hasSong = parsed?.song && (parsed.song.title || parsed.song.artist);
+    // Validate and normalize song - reject if missing or invalid
+    const hasValidSong = parsed?.song && 
+      parsed.song.title && 
+      parsed.song.title.toString().trim() !== '' &&
+      parsed.song.title.toString().trim().toLowerCase() !== 'unknown song' &&
+      parsed.song.artist && 
+      parsed.song.artist.toString().trim() !== '' &&
+      parsed.song.artist.toString().trim().toLowerCase() !== 'unknown artist';
+
+    if (!hasValidSong) {
+      console.error('AI did not generate a valid song. Parsed data:', JSON.stringify(parsed, null, 2));
+      return NextResponse.json(
+        { 
+          error: 'Failed to generate song recommendation', 
+          details: 'AI did not provide a valid song. Please try again.' 
+        },
+        { status: 500 }
+      );
+    }
+
     const normalized = {
       mentor_style: (parsed?.mentor_style || 'Wisdom').toString().trim(),
       themes: Array.isArray(parsed?.themes) ? parsed.themes.map((t: any) => t.toString().trim()).filter(Boolean) : [],
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
-      song: hasSong ? {
-        title: parsed.song.title ? parsed.song.title.toString().trim() : 'Unknown Song',
-        artist: parsed.song.artist ? parsed.song.artist.toString().trim() : 'Unknown Artist',
+      song: {
+        title: parsed.song.title.toString().trim(),
+        artist: parsed.song.artist.toString().trim(),
         youtube_url: parsed.song.youtube_url
           ? parsed.song.youtube_url.toString().trim()
           : toYoutube(parsed.song.reason || ''),
@@ -213,12 +231,6 @@ ${allNotesText}
           ? parsed.song.youtube_candidates.map((u: any) => u?.toString?.().trim()).filter(Boolean).slice(0, 3)
           : [],
         reason: parsed.song.reason ? parsed.song.reason.toString().trim() : '這首歌與今日的靈感相呼應，帶來溫暖的力量。',
-      } : {
-        title: 'Unknown Song',
-        artist: 'Unknown Artist',
-        youtube_url: '',
-        youtube_candidates: [],
-        reason: '這首歌與今日的靈感相呼應，帶來溫暖的力量。',
       },
     };
 
