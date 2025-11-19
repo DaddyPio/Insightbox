@@ -1,7 +1,7 @@
 -- Create table for Favorite Daily Inspirations
 create table if not exists public.favorites (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
   inspiration_id uuid not null references public.daily_inspiration(id) on delete cascade,
   created_at timestamp with time zone default now(),
   unique(user_id, inspiration_id)

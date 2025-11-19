@@ -99,28 +99,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
     }
 
+    // Get current user ID
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized', details: 'User not found' }, { status: 401 });
+    }
+
     // Check if already favorited
-    const { data: existing } = await supabase
+    const { data: existing, error: checkError } = await supabase
       .from('favorites')
       .select('id')
       .eq('inspiration_id', inspirationId)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 is "not found" which is fine, other errors are not
+      console.error('Error checking existing favorite:', checkError);
+      return NextResponse.json(
+        { error: 'Failed to check favorite status', details: checkError.message, code: checkError.code },
+        { status: 500 }
+      );
+    }
 
     if (existing) {
       return NextResponse.json({ message: 'Already favorited', favoriteId: existing.id });
     }
 
-    // Add to favorites
+    // Add to favorites with user_id
     const { data: favorite, error } = await supabase
       .from('favorites')
-      .insert({ inspiration_id: inspirationId })
+      .insert({ inspiration_id: inspirationId, user_id: user.id })
       .select()
       .single();
 
     if (error) {
       console.error('Error adding favorite:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return NextResponse.json(
-        { error: 'Failed to add favorite', details: error.message },
+        { 
+          error: 'Failed to add favorite', 
+          details: error.message,
+          code: error.code,
+          hint: error.hint
+        },
         { status: 500 }
       );
     }
