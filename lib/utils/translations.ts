@@ -99,6 +99,13 @@ export interface Translations {
   // Guide
   guide: string;
   guideTitle: string;
+  
+  // Auth prompts
+  loginRequired: string;
+  loginRequiredMessage: string;
+  pleaseLoginOrSignup: string;
+  goToLogin: string;
+  goToSignup: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -178,6 +185,11 @@ export const translations: Record<AppLanguage, Translations> = {
     algorithmTitle: '每日雞湯演算法說明',
     guide: '使用說明',
     guideTitle: 'InsightBox 官方使用說明',
+    loginRequired: '需要登入',
+    loginRequiredMessage: '儲存筆記需要先登入帳號',
+    pleaseLoginOrSignup: '請先註冊或登入以使用此功能',
+    goToLogin: '前往登入',
+    goToSignup: '前往註冊',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -255,6 +267,11 @@ export const translations: Record<AppLanguage, Translations> = {
     algorithmTitle: 'Daily Inspiration Algorithm',
     guide: 'User Guide',
     guideTitle: 'InsightBox User Guide',
+    loginRequired: 'Login Required',
+    loginRequiredMessage: 'You need to log in to save notes',
+    pleaseLoginOrSignup: 'Please sign up or log in to use this feature',
+    goToLogin: 'Go to Login',
+    goToSignup: 'Go to Sign Up',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -332,6 +349,11 @@ export const translations: Record<AppLanguage, Translations> = {
     algorithmTitle: 'デイリーインスピレーションアルゴリズム',
     guide: '使用ガイド',
     guideTitle: 'InsightBox 使用ガイド',
+    loginRequired: 'ログインが必要',
+    loginRequiredMessage: 'ノートを保存するにはログインが必要です',
+    pleaseLoginOrSignup: 'この機能を使用するには、サインアップまたはログインしてください',
+    goToLogin: 'ログインへ',
+    goToSignup: 'サインアップへ',
   },
 };
 

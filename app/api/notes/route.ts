@@ -73,6 +73,20 @@ export async function POST(request: NextRequest) {
 
     // Insert note into database (RLS applies; user_id defaults to auth.uid())
     const supabase = supabaseFromRequest(request);
+    
+    // Check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { 
+          error: 'Authentication required',
+          message: 'You must be logged in to save notes. Please sign up or log in first.',
+          code: 'AUTH_REQUIRED'
+        },
+        { status: 401 }
+      );
+    }
+    
     const { data: note, error } = await supabase
       .from('notes')
       .insert({

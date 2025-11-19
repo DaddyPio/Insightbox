@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import SpeechToTextButton from '@/components/SpeechToTextButton';
 import { getStoredLanguage, setStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export default function Home() {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<AppLanguage>('en');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -19,6 +22,22 @@ export default function Home() {
     if (storedLang) {
       setLanguage(storedLang);
     }
+    
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabaseBrowser.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLanguageChange = (lang: AppLanguage) => {
@@ -53,6 +72,13 @@ export default function Home() {
 
       if (!response.ok) {
         const data = await response.json();
+        
+        // Handle authentication errors specially
+        if (data.code === 'AUTH_REQUIRED' || response.status === 401) {
+          setError(t.loginRequiredMessage);
+          return;
+        }
+        
         // Show detailed error message if available
         const errorMsg = data.message || data.error || 'Failed to create note';
         const errorDetails = data.details ? `\n\nDetails: ${data.details}` : '';
@@ -124,7 +150,45 @@ export default function Home() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg whitespace-pre-wrap">
-            {error}
+            <div className="font-semibold mb-2">{t.loginRequired}</div>
+            <div className="mb-3">{error}</div>
+            {error === t.loginRequiredMessage && (
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                <Link 
+                  href="/signup" 
+                  className="btn-primary text-center text-sm py-2"
+                >
+                  {t.goToSignup}
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="btn-secondary text-center text-sm py-2"
+                >
+                  {t.goToLogin}
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {isAuthenticated === false && !error && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+            <div className="font-semibold mb-1">{t.loginRequired}</div>
+            <div className="text-sm mb-3">{t.pleaseLoginOrSignup}</div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Link 
+                href="/signup" 
+                className="btn-primary text-center text-sm py-2"
+              >
+                {t.goToSignup}
+              </Link>
+              <Link 
+                href="/login" 
+                className="btn-secondary text-center text-sm py-2"
+              >
+                {t.goToLogin}
+              </Link>
+            </div>
           </div>
         )}
 
