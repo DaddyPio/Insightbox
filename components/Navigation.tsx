@@ -180,7 +180,7 @@ export default function Navigation() {
                     : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
                 }`}
               >
-                Daily
+                {t.navDaily}
               </Link>
               <Link 
                 href="/create" 
