@@ -86,6 +86,16 @@ export default function Navigation() {
               >
                 {t.navDaily}
               </Link>
+              <Link 
+                href="/create" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/create' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.navCreate}
+              </Link>
               {/* Weekly Review temporarily hidden */}
               {/* <Link 
                 href="/weekly" 
@@ -171,6 +181,17 @@ export default function Navigation() {
                 }`}
               >
                 Daily
+              </Link>
+              <Link 
+                href="/create" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname === '/create' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.navCreate}
               </Link>
               {/* Weekly Review temporarily hidden */}
               {/* <Link 
