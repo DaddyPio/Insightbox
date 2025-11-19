@@ -115,8 +115,11 @@ Extract insights following the JSON format specified.
     let completion;
     try {
       console.log('Calling OpenAI API with prompt length:', userPrompt.length);
+      console.log('Notes text length:', notesText.length);
+      console.log('User prompt preview:', userPrompt.substring(0, 200));
+      
       completion = await openai.chat.completions.create({
-        model: 'gpt-5.1',
+        model: 'gpt-4o', // Changed from gpt-5.1 to gpt-4o for better compatibility
         messages: [
           { role: 'system', content: EXTRACTION_PROMPT },
           { role: 'user', content: userPrompt },

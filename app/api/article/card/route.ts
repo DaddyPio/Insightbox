@@ -50,7 +50,7 @@ Extract card content following the JSON format specified.
 `.trim();
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5.1',
+      model: 'gpt-4o', // Changed from gpt-5.1 to gpt-4o for better compatibility
       messages: [
         { role: 'system', content: CARD_PROMPT },
         { role: 'user', content: userPrompt },

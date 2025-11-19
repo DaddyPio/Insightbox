@@ -103,7 +103,7 @@ Write a 500-1000 word article following the structure specified. The content mus
     try {
       console.log('Calling OpenAI API for article generation with prompt length:', userPrompt.length);
       completion = await openai.chat.completions.create({
-        model: 'gpt-5.1',
+        model: 'gpt-4o', // Changed from gpt-5.1 to gpt-4o for better compatibility
         messages: [
           { role: 'system', content: ARTICLE_PROMPT },
           { role: 'user', content: userPrompt },
