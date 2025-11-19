@@ -170,7 +170,7 @@ export const translations: Record<AppLanguage, Translations> = {
     articleContent: '文章內容',
     cardStyleReflection: '深度反思版',
     cardStyleAction: '行動短句版',
-    algorithmNote: '演算法說明',
+    algorithmNote: '生成配方',
     algorithmTitle: '每日雞湯演算法說明',
   },
   'en': {
@@ -245,7 +245,7 @@ export const translations: Record<AppLanguage, Translations> = {
     articleContent: 'Article Content',
     cardStyleReflection: 'Reflection Style',
     cardStyleAction: 'Action Style',
-    algorithmNote: 'Algorithm Info',
+    algorithmNote: 'Inspiration recipe',
     algorithmTitle: 'Daily Inspiration Algorithm',
   },
   'ja': {
