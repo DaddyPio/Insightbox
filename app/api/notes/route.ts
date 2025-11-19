@@ -102,6 +102,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating note:', error);
+      
+      // Check for user_id constraint violation
+      if (error.code === '23502' && (error.message?.includes('user_id') || error.message?.includes('user_id'))) {
+        return NextResponse.json(
+          { 
+            error: 'Authentication required',
+            message: 'You must be logged in to save notes. Please sign up or log in first.',
+            code: 'AUTH_REQUIRED'
+          },
+          { status: 401 }
+        );
+      }
+      
       return NextResponse.json(
         { 
           error: 'Failed to create note',
