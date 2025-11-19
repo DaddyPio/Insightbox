@@ -14,17 +14,18 @@ Hard rules:
     "title": string,
     "message": string,               // 1–2 sentences, paraphrased, not copying any input text
     "song": { 
-      "title": string, 
-      "artist": string, 
-      "youtube_url": string,         // direct YouTube watch/listen URL
+      "title": string,               // REQUIRED: Must provide a song title
+      "artist": string,              // REQUIRED: Must provide an artist name
+      "youtube_url": string,         // REQUIRED: direct YouTube watch/listen URL
       "youtube_candidates": string[],// 2-3 alternative public YouTube links
-      "reason": string               // CRITICAL: Explain how the song's ACTUAL lyrics, theme, and emotional tone align with the message's spirit. Must be accurate to the song's real meaning, not generic. 1-2 sentences.
+      "reason": string               // REQUIRED: Write a brief text (1-2 sentences) that relates to the song's actual lyrics, and loosely connects it to the daily inspiration message. The connection doesn't need to be perfect - just find a way to link the song's lyrics/theme to the message's spirit.
     }
   }
 - Do NOT quote or reuse full sentences from the notes; summarize the essence and extend it.
 - Keep message warm, grounded, and hopeful with a wooden aesthetic; avoid cliches.
 - Language must match the dominant language of the input notes (zh‑TW, en, or ja).
-- For "song": Choose a song whose lyrics, theme, and emotional message genuinely resonate with the daily inspiration message. The "reason" must accurately reflect the song's actual content and meaning, showing a real connection between the song's essence and the message's spirit.
+- "song" is MANDATORY - you must always provide a song recommendation.
+- For "reason": Write about the song's actual lyrics or theme, then find a way to loosely connect it to the daily inspiration message. The connection can be subtle - just make sure the text relates to the song's real content and touches on the message's theme.
 `.trim();
 
 function getTodayISODate(): string {
@@ -119,12 +120,15 @@ Create the JSON only (no extra text).
 
 Requirements:
 1. "message": 1–2 sentences, paraphrased/extended from the themes of the notes, not copied verbatim. Make it warm, inspiring, and spiritually uplifting.
-2. "song": 
-   - Choose a song whose lyrics, theme, and emotional message genuinely match the spirit of your "message"
-   - The song should reinforce or complement the daily inspiration's core message
+
+2. "song" (MANDATORY - must always be included):
+   - Choose any appropriate song (it doesn't need to perfectly match the message)
    - Provide a direct YouTube watch URL in "youtube_url" (format: https://www.youtube.com/watch?v=VIDEO_ID)
    - Provide 2-3 alternative YouTube links in "youtube_candidates" if available
-   - "reason": Write 1-2 sentences that accurately explain how the song's ACTUAL lyrics, theme, or emotional tone connects with the message. Be specific about the connection - mention actual song elements (lyrics, mood, theme) that align with the message's meaning. Do NOT write generic reasons.
+   - "reason" (REQUIRED): Write 1-2 short sentences that:
+     * Mention something about the song's actual lyrics or theme
+     * Loosely connect it to the daily inspiration message (the connection can be subtle, just find a way to link them)
+     * Example: "這首歌的歌詞提到[某個歌詞內容], 就像[每日雞湯訊息]一樣, [簡單的連接]"
 
 Cards:
 ${selectedText}
@@ -175,19 +179,27 @@ ${selectedText}
       }
     }
 
+    // Ensure song is always present - if missing, provide a fallback
+    const hasSong = parsed?.song && (parsed.song.title || parsed.song.artist);
     const normalized = {
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
-      song: {
-        title: parsed?.song?.title ? parsed.song.title.toString().trim() : '',
-        artist: parsed?.song?.artist ? parsed.song.artist.toString().trim() : '',
-        youtube_url: parsed?.song?.youtube_url
+      song: hasSong ? {
+        title: parsed.song.title ? parsed.song.title.toString().trim() : 'Unknown Song',
+        artist: parsed.song.artist ? parsed.song.artist.toString().trim() : 'Unknown Artist',
+        youtube_url: parsed.song.youtube_url
           ? parsed.song.youtube_url.toString().trim()
-          : toYoutube(parsed?.song?.reason || ''),
-        youtube_candidates: Array.isArray(parsed?.song?.youtube_candidates)
+          : toYoutube(parsed.song.reason || ''),
+        youtube_candidates: Array.isArray(parsed.song.youtube_candidates)
           ? parsed.song.youtube_candidates.map((u: any) => u?.toString?.().trim()).filter(Boolean).slice(0, 3)
           : [],
-        reason: parsed?.song?.reason ? parsed.song.reason.toString().trim() : '',
+        reason: parsed.song.reason ? parsed.song.reason.toString().trim() : '這首歌與今日的靈感相呼應，帶來溫暖的力量。',
+      } : {
+        title: 'Unknown Song',
+        artist: 'Unknown Artist',
+        youtube_url: '',
+        youtube_candidates: [],
+        reason: '這首歌與今日的靈感相呼應，帶來溫暖的力量。',
       },
     };
 
