@@ -138,7 +138,10 @@ export default function CreatePage() {
       }
       const data = await res.json();
       setExtraction(data.extraction);
+      // Auto proceed to step 4 (generate topics)
       setStep(3);
+      // Generate topics automatically
+      setTimeout(() => handleStep4(), 500);
     } catch (e: any) {
       setError(e?.message || 'Failed to extract content');
     } finally {
