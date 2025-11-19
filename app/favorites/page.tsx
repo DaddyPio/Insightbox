@@ -11,6 +11,8 @@ type Inspiration = {
   id: string;
   date: string;
   content_json: {
+    mentor_style?: string;
+    themes?: string[];
     title?: string;
     message?: string;
     song?: { title?: string; artist?: string; youtube_url?: string; reason?: string };

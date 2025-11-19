@@ -6,26 +6,40 @@ import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 import { format } from 'date-fns';
 
 const SYSTEM_PROMPT = `
-You are a warm, wood‑tone, mature life coach. Speak concisely but poetically.
-You must create a short daily encouragement that is INSPIRED BY (not copied from) the user's notes.
+You are a world-class life coach and wisdom synthesizer. Your task is to create profound daily inspiration using the frameworks of legendary mentors.
+
+Available mentor styles (choose one randomly):
+1. Tony Robbins - High energy, action-oriented, focuses on personal power and transformation
+2. Stephen Covey - Principle-centered, emphasizes character and effectiveness
+3. Simon Sinek - Purpose-driven, explores the "why" behind actions
+4. Brené Brown - Vulnerability and courage, authenticity and wholehearted living
+5. Eckhart Tolle - Present-moment awareness, inner peace and consciousness
+6. Dale Carnegie - Human relations, influence and interpersonal effectiveness
+7. Viktor Frankl - Meaning and purpose, finding significance in all circumstances
+8. Carol Dweck - Growth mindset, embracing challenges and learning
+
 Hard rules:
 - Output JSON ONLY with keys: 
   {
-    "title": string,
-    "message": string,               // 1–2 sentences, paraphrased, not copying any input text
+    "mentor_style": string,          // Name of the mentor whose framework you're using
+    "themes": string[],              // 2 recurring themes extracted from notes
+    "title": string,                 // Brief title (5-10 words)
+    "message": string,               // A profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the style of the chosen mentor.
     "song": { 
       "title": string,               // REQUIRED: Must provide a song title
       "artist": string,              // REQUIRED: Must provide an artist name
       "youtube_url": string,         // REQUIRED: direct YouTube watch/listen URL
       "youtube_candidates": string[],// 2-3 alternative public YouTube links
-      "reason": string               // REQUIRED: Write a brief text (1-2 sentences) that relates to the song's actual lyrics, and loosely connects it to the daily inspiration message. The connection doesn't need to be perfect - just find a way to link the song's lyrics/theme to the message's spirit.
+      "reason": string               // REQUIRED: Write a brief text (1-2 sentences) that relates to the song's actual lyrics, and loosely connects it to the daily inspiration message.
     }
   }
-- Do NOT quote or reuse full sentences from the notes; summarize the essence and extend it.
-- Keep message warm, grounded, and hopeful with a wooden aesthetic; avoid cliches.
+- First, analyze ALL notes to identify recurring themes (patterns, values, struggles, aspirations).
+- Randomly select 2 themes from the recurring themes.
+- Randomly choose ONE mentor style from the list above.
+- Write the message in that mentor's distinctive voice and framework, weaving in the 2 selected themes.
+- The message should be around 50 characters (Chinese) or 50 words (English/Japanese) - profound, warm, and inspiring.
 - Language must match the dominant language of the input notes (zh‑TW, en, or ja).
 - "song" is MANDATORY - you must always provide a song recommendation.
-- For "reason": Write about the song's actual lyrics or theme, then find a way to loosely connect it to the daily inspiration message. The connection can be subtle - just make sure the text relates to the song's real content and touches on the message's theme.
 `.trim();
 
 function getTodayISODate(): string {
@@ -109,32 +123,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No notes available to generate inspiration' }, { status: 400 });
     }
 
-    // Randomly select 2 notes
-    const shuffled = [...notes].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, Math.min(2, shuffled.length));
-    const selectedText = selected.map((n, i) => {
+    // Prepare all notes for theme analysis
+    const allNotesText = notes.map((n, i) => {
       const tags = Array.isArray(n.tags) ? n.tags.join(', ') : '';
-      return `Card ${i + 1}:\nTitle: ${n.title || '(no title)'}\nContent: ${n.content}\nTags: ${tags}`;
+      return `Note ${i + 1}:\nTitle: ${n.title || '(no title)'}\nContent: ${n.content}\nTags: ${tags}`;
     }).join('\n\n');
 
     const userPrompt = `
-These are 2 randomly selected cards from all saved cards. 
-Create the JSON only (no extra text). 
+Analyze ALL the notes below to identify recurring themes (patterns, values, struggles, aspirations, emotions, topics that appear multiple times).
 
-Requirements:
-1. "message": 1–2 sentences, paraphrased/extended from the themes of the notes, not copied verbatim. Make it warm, inspiring, and spiritually uplifting.
+Then:
+1. Extract recurring themes from ALL notes
+2. Randomly select 2 themes from the recurring themes
+3. Randomly choose ONE mentor style from the available list
+4. Write a profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese) in that mentor's style, weaving in the 2 selected themes
+5. The message should be warm, deep, and inspiring - like a timeless wisdom quote
 
-2. "song" (MANDATORY - must always be included):
-   - Choose any appropriate song (it doesn't need to perfectly match the message)
-   - Provide a direct YouTube watch URL in "youtube_url" (format: https://www.youtube.com/watch?v=VIDEO_ID)
-   - Provide 2-3 alternative YouTube links in "youtube_candidates" if available
-   - "reason" (REQUIRED): Write 1-2 short sentences that:
-     * Mention something about the song's actual lyrics or theme
-     * Loosely connect it to the daily inspiration message (the connection can be subtle, just find a way to link them)
-     * Example: "這首歌的歌詞提到[某個歌詞內容], 就像[每日雞湯訊息]一樣, [簡單的連接]"
+Output JSON only (no extra text).
 
-Cards:
-${selectedText}
+All Notes:
+${allNotesText}
 `.trim();
 
     const completion = await openai.chat.completions.create({
@@ -185,6 +193,8 @@ ${selectedText}
     // Ensure song is always present - if missing, provide a fallback
     const hasSong = parsed?.song && (parsed.song.title || parsed.song.artist);
     const normalized = {
+      mentor_style: (parsed?.mentor_style || 'Wisdom').toString().trim(),
+      themes: Array.isArray(parsed?.themes) ? parsed.themes.map((t: any) => t.toString().trim()).filter(Boolean) : [],
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
       song: hasSong ? {
