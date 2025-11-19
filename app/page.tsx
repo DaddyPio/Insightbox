@@ -174,10 +174,6 @@ export default function Home() {
           </p>
         </div>
       </div>
-
-      <footer className="mt-12 text-center text-wood-500">
-        {t.footerCopyright}
-      </footer>
     </div>
   );
 }
