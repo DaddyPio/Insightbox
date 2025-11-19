@@ -61,7 +61,10 @@ export default function DailyPage() {
       const res = await authFetch('/api/daily', { method: 'POST' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to generate');
+        const errorMsg = data.details 
+          ? `${data.error}: ${data.details}` 
+          : data.error || 'Failed to generate';
+        throw new Error(errorMsg);
       }
       const data = await res.json();
       setInspiration(data.inspiration);
@@ -292,7 +295,10 @@ export default function DailyPage() {
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-4">
-          {error}
+          <div className="font-semibold mb-1">{error}</div>
+          <div className="text-sm opacity-80">
+            如果問題持續，請檢查瀏覽器控制台（F12）查看詳細錯誤訊息，或確認已執行 Supabase SQL 政策。
+          </div>
         </div>
       )}
     </div>

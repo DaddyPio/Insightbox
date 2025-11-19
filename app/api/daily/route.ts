@@ -46,6 +46,10 @@ export async function GET(request: NextRequest) {
 
     const today = getTodayISODate();
     const supabase = supabaseFromRequest(request);
+    if (!supabase) {
+      return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
+    }
+    
     const { data, error } = await supabase
       .from('daily_inspiration')
       .select('*')
@@ -84,6 +88,10 @@ export async function POST(request: NextRequest) {
 
     // Fetch all cards (notes)
     const supabase = supabaseFromRequest(request);
+    if (!supabase) {
+      return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
+    }
+    
     const { data: notes, error: notesError } = await supabase
       .from('notes')
       .select('id, title, content, tags')
@@ -207,8 +215,21 @@ ${selectedText}
 
     if (upsertError) {
       console.error('Upsert error (daily_inspiration):', upsertError);
+      const errorDetails = upsertError.message || upsertError.code || JSON.stringify(upsertError);
       return NextResponse.json(
-        { error: 'Failed to save daily inspiration', details: upsertError.message },
+        { 
+          error: 'Failed to save daily inspiration', 
+          details: errorDetails,
+          code: upsertError.code,
+          hint: upsertError.hint
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!upserted) {
+      return NextResponse.json(
+        { error: 'Failed to save daily inspiration', details: 'No data returned from database' },
         { status: 500 }
       );
     }
@@ -216,7 +237,15 @@ ${selectedText}
     return NextResponse.json({ inspiration: upserted });
   } catch (error: any) {
     console.error('POST /api/daily error:', error);
-    return NextResponse.json({ error: error?.message || 'Internal error' }, { status: 500 });
+    const errorMessage = error?.message || 'Internal error';
+    const errorStack = process.env.NODE_ENV === 'development' ? error?.stack : undefined;
+    return NextResponse.json(
+      { 
+        error: errorMessage,
+        details: errorStack || error?.toString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
