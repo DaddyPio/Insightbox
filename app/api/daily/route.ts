@@ -18,12 +18,13 @@ Hard rules:
       "artist": string, 
       "youtube_url": string,         // direct YouTube watch/listen URL
       "youtube_candidates": string[],// 2-3 alternative public YouTube links
-      "reason": string               // why this song matches the message in 1 short sentence
+      "reason": string               // CRITICAL: Explain how the song's ACTUAL lyrics, theme, and emotional tone align with the message's spirit. Must be accurate to the song's real meaning, not generic. 1-2 sentences.
     }
   }
 - Do NOT quote or reuse full sentences from the notes; summarize the essence and extend it.
 - Keep message warm, grounded, and hopeful with a wooden aesthetic; avoid cliches.
 - Language must match the dominant language of the input notes (zh‑TW, en, or ja).
+- For "song": Choose a song whose lyrics, theme, and emotional message genuinely resonate with the daily inspiration message. The "reason" must accurately reflect the song's actual content and meaning, showing a real connection between the song's essence and the message's spirit.
 `.trim();
 
 function getTodayISODate(): string {
@@ -115,8 +116,15 @@ export async function POST(request: NextRequest) {
     const userPrompt = `
 These are 2 randomly selected cards from all saved cards. 
 Create the JSON only (no extra text). 
-Requirements for "message": 1–2 sentences, paraphrased/extended from the themes of the notes, not copied verbatim.
-For "song", provide a direct YouTube link in "youtube_url".
+
+Requirements:
+1. "message": 1–2 sentences, paraphrased/extended from the themes of the notes, not copied verbatim. Make it warm, inspiring, and spiritually uplifting.
+2. "song": 
+   - Choose a song whose lyrics, theme, and emotional message genuinely match the spirit of your "message"
+   - The song should reinforce or complement the daily inspiration's core message
+   - Provide a direct YouTube watch URL in "youtube_url" (format: https://www.youtube.com/watch?v=VIDEO_ID)
+   - Provide 2-3 alternative YouTube links in "youtube_candidates" if available
+   - "reason": Write 1-2 sentences that accurately explain how the song's ACTUAL lyrics, theme, or emotional tone connects with the message. Be specific about the connection - mention actual song elements (lyrics, mood, theme) that align with the message's meaning. Do NOT write generic reasons.
 
 Cards:
 ${selectedText}
