@@ -255,6 +255,13 @@ export default function CreatePage() {
     setLoading(true);
     setError(null);
     try {
+      console.log('Generating article with:', {
+        noteIds: selectedNoteIds,
+        mentorStyle: selectedMentor,
+        extraction,
+        selectedTopic: topic,
+      });
+
       const res = await authFetch('/api/article/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -265,13 +272,38 @@ export default function CreatePage() {
           selectedTopic: topic,
         }),
       });
+
+      const responseText = await res.text();
+      console.log('Article API response status:', res.status);
+      console.log('Article API response:', responseText);
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to generate article');
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || 'Failed to generate article' };
+        }
+        const errorMsg = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : errorData.error || 'Failed to generate article';
+        throw new Error(errorMsg);
       }
-      const data = await res.json();
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('Invalid response from server');
+      }
+
+      console.log('Received article:', data);
+      if (!data.article) {
+        throw new Error('No article data returned');
+      }
       setArticle(data.article);
     } catch (e: any) {
+      console.error('Error generating article:', e);
       setError(e?.message || 'Failed to generate article');
     } finally {
       setLoading(false);
