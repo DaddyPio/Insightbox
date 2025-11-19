@@ -52,11 +52,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
     }
     
+    // Get the most recent inspiration for today
     const { data, error } = await supabase
       .from('daily_inspiration')
       .select('*')
       .eq('date', today)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error || !data) {
       return NextResponse.json({ error: 'Not found for today' }, { status: 404 });
@@ -226,35 +229,35 @@ ${selectedText}
     normalized.song.youtube_url = picked || '';
     delete (normalized.song as any).youtube_candidates;
 
-    // Upsert by date
-    const { data: upserted, error: upsertError } = await supabase
+    // Insert new inspiration (don't overwrite existing ones, allow multiple per day)
+    const { data: inserted, error: insertError } = await supabase
       .from('daily_inspiration')
-      .upsert({ date: today, content_json: normalized }, { onConflict: 'date' })
+      .insert({ date: today, content_json: normalized })
       .select()
       .single();
 
-    if (upsertError) {
-      console.error('Upsert error (daily_inspiration):', upsertError);
-      const errorDetails = upsertError.message || upsertError.code || JSON.stringify(upsertError);
+    if (insertError) {
+      console.error('Insert error (daily_inspiration):', insertError);
+      const errorDetails = insertError.message || insertError.code || JSON.stringify(insertError);
       return NextResponse.json(
         { 
           error: 'Failed to save daily inspiration', 
           details: errorDetails,
-          code: upsertError.code,
-          hint: upsertError.hint
+          code: insertError.code,
+          hint: insertError.hint
         },
         { status: 500 }
       );
     }
 
-    if (!upserted) {
+    if (!inserted) {
       return NextResponse.json(
         { error: 'Failed to save daily inspiration', details: 'No data returned from database' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ inspiration: upserted });
+    return NextResponse.json({ inspiration: inserted });
   } catch (error: any) {
     console.error('POST /api/daily error:', error);
     const errorMessage = error?.message || 'Internal error';

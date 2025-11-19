@@ -1,12 +1,23 @@
 -- Create table for Daily Inspiration
 create table if not exists public.daily_inspiration (
   id uuid primary key default gen_random_uuid(),
-  -- store yyyy-mm-dd, unique per day
-  date date not null unique,
+  -- store yyyy-mm-dd (not unique, allow multiple inspirations per day)
+  date date not null,
   -- JSON result from OpenAI (message, title, song, etc.)
   content_json jsonb not null,
   created_at timestamp with time zone default now()
 );
+
+-- Remove unique constraint on date if it exists (allow multiple inspirations per day)
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint 
+    where conname = 'daily_inspiration_date_key'
+  ) then
+    alter table public.daily_inspiration drop constraint daily_inspiration_date_key;
+  end if;
+end$$;
 
 alter table public.daily_inspiration enable row level security;
 
