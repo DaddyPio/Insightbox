@@ -167,11 +167,12 @@ ${allNotesText}
 
     // Normalize result and provide fallbacks when fields missing
     const fallbackMessage =
-      selected
+      notes
+        .slice(0, 3)
         .map((n) => (n?.content || '').trim())
         .filter(Boolean)
-        .join('\n\n')
-        .slice(0, 400) || 'Take a deep breath. Notice one small thing you can appreciate right now.';
+        .join(' ')
+        .slice(0, 50) || 'Take a deep breath. Notice one small thing you can appreciate right now.';
 
     // Try to pull a plausible YouTube URL if model forgot the field
     const toYoutube = (v: any): string => {
