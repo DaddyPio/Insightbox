@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic';
  * GET /api/cron/daily
  * Vercel Scheduled Function target - runs once per day (see vercel.json)
  */
-export async function GET(request: NextRequest | null) {
+export async function GET(request: NextRequest) {
   try {
     // Verify this is called from Vercel Cron (optional check)
-    const authHeader = request?.headers?.get('authorization');
+    const authHeader = request.headers?.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
