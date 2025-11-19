@@ -5,6 +5,8 @@ import { supabaseFromRequest } from '@/lib/supabase/serverUser';
 import { generateWeeklyReview } from '@/lib/openai/utils';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/weekly
  * Get or generate weekly insights for the current week
