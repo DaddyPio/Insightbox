@@ -18,28 +18,31 @@ Available mentor styles (choose one randomly):
 7. Viktor Frankl - Meaning and purpose, finding significance in all circumstances
 8. Carol Dweck - Growth mindset, embracing challenges and learning
 
-Hard rules:
+CRITICAL RULES:
+- DO NOT copy, quote, or reuse exact sentences or phrases from the user's notes.
+- You must ABSTRACT and SYNTHESIZE the themes, then create ORIGINAL wisdom in the mentor's style.
+- The message must be YOUR OWN CREATION, inspired by themes but written in the mentor's voice.
 - Output JSON ONLY with keys: 
   {
     "mentor_style": string,          // Name of the mentor whose framework you're using
-    "themes": string[],              // 2 recurring themes extracted from notes
+    "themes": string[],              // 2 recurring themes extracted from notes (abstract concepts, not copied text)
     "title": string,                 // Brief title (5-10 words)
-    "message": string,               // A profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the style of the chosen mentor.
+    "message": string,               // A profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the style of the chosen mentor. MUST BE ORIGINAL - do not copy from notes.
     "song": { 
-      "title": string,               // REQUIRED: Must provide a song title
-      "artist": string,              // REQUIRED: Must provide an artist name
-      "youtube_url": string,         // REQUIRED: direct YouTube watch/listen URL
+      "title": string,               // REQUIRED: Must provide a REAL song title (not "Unknown Song")
+      "artist": string,              // REQUIRED: Must provide a REAL artist name (not "Unknown Artist")
+      "youtube_url": string,         // REQUIRED: direct YouTube watch/listen URL (format: https://www.youtube.com/watch?v=VIDEO_ID)
       "youtube_candidates": string[],// 2-3 alternative public YouTube links
       "reason": string               // REQUIRED: Write a brief text (1-2 sentences) that relates to the song's actual lyrics, and loosely connects it to the daily inspiration message.
     }
   }
-- First, analyze ALL notes to identify recurring themes (patterns, values, struggles, aspirations).
+- First, analyze ALL notes to identify recurring themes (patterns, values, struggles, aspirations) - abstract these into concepts, not copy text.
 - Randomly select 2 themes from the recurring themes.
 - Randomly choose ONE mentor style from the list above.
-- Write the message in that mentor's distinctive voice and framework, weaving in the 2 selected themes.
+- Write the message in that mentor's distinctive voice and framework, weaving in the 2 selected themes. The message must be ORIGINAL - inspired by themes but not copying any text from notes.
 - The message should be around 50 characters (Chinese) or 50 words (English/Japanese) - profound, warm, and inspiring.
 - Language must match the dominant language of the input notes (zh‑TW, en, or ja).
-- "song" is MANDATORY - you must always provide a song recommendation.
+- "song" is MANDATORY - you must ALWAYS provide a REAL song with REAL title and artist. Never use "Unknown Song" or "Unknown Artist".
 `.trim();
 
 function getTodayISODate(): string {
@@ -132,12 +135,14 @@ export async function POST(request: NextRequest) {
     const userPrompt = `
 Analyze ALL the notes below to identify recurring themes (patterns, values, struggles, aspirations, emotions, topics that appear multiple times).
 
-Then:
-1. Extract recurring themes from ALL notes
-2. Randomly select 2 themes from the recurring themes
-3. Randomly choose ONE mentor style from the available list
-4. Write a profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese) in that mentor's style, weaving in the 2 selected themes
-5. The message should be warm, deep, and inspiring - like a timeless wisdom quote
+IMPORTANT INSTRUCTIONS:
+1. Extract recurring themes from ALL notes - abstract these into concepts (e.g., "fear of failure", "desire for growth", "work-life balance"), NOT copy exact text from notes.
+2. Randomly select 2 themes from the recurring themes.
+3. Randomly choose ONE mentor style from the available list.
+4. Write a profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese) in that mentor's distinctive style, weaving in the 2 selected themes.
+5. The message MUST BE ORIGINAL - do NOT copy, quote, or reuse any sentences or phrases from the notes. Create new wisdom inspired by the themes.
+6. The message should be warm, deep, and inspiring - like a timeless wisdom quote from the chosen mentor.
+7. You MUST provide a REAL song with REAL title and artist - never use "Unknown Song" or "Unknown Artist".
 
 Output JSON only (no extra text).
 
@@ -151,8 +156,8 @@ ${allNotesText}
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.8,
-      max_completion_tokens: 300,
+      temperature: 0.9, // Increased for more creativity and variation
+      max_completion_tokens: 500, // Increased to allow for theme analysis and song details
     });
 
     const raw = completion.choices[0]?.message?.content?.trim() || '{}';
