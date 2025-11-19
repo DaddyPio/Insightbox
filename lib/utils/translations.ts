@@ -38,6 +38,7 @@ export interface Translations {
   navCards: string;
   navWeeklyReview: string;
   navDaily: string;
+  navFavorites: string;
 
   // Home page
   homeTitle: string;
@@ -53,6 +54,13 @@ export interface Translations {
   logout: string;
   register: string;
   login: string;
+  
+  // Favorites
+  addToFavorites: string;
+  removeFromFavorites: string;
+  favorites: string;
+  noFavorites: string;
+  favoritesTitle: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -83,6 +91,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navCards: '卡片',
     navWeeklyReview: '每週回顧',
     navDaily: '每日雞湯',
+    navFavorites: '收藏',
     homeTitle: '捕捉你的靈感',
     homeSubtitle: '用文字或語音記錄想法，AI 會協助整理與理解。',
     yourNote: '你的筆記',
@@ -94,6 +103,11 @@ export const translations: Record<AppLanguage, Translations> = {
     logout: '登出',
     register: '註冊',
     login: '登入',
+    addToFavorites: '收藏',
+    removeFromFavorites: '取消收藏',
+    favorites: '收藏',
+    noFavorites: '還沒有收藏任何每日雞湯',
+    favoritesTitle: '我的收藏',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -122,6 +136,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navCards: 'Cards',
     navWeeklyReview: 'Weekly Review',
     navDaily: 'Daily Inspiration',
+    navFavorites: 'Favorites',
     homeTitle: 'Capture Your Insight',
     homeSubtitle: 'Write or speak your thoughts. AI will help organize and understand them.',
     yourNote: 'Your Note',
@@ -133,6 +148,11 @@ export const translations: Record<AppLanguage, Translations> = {
     logout: 'Logout',
     register: 'Register',
     login: 'Login',
+    addToFavorites: 'Add to Favorites',
+    removeFromFavorites: 'Remove from Favorites',
+    favorites: 'Favorites',
+    noFavorites: 'No favorites yet',
+    favoritesTitle: 'My Favorites',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -161,6 +181,7 @@ export const translations: Record<AppLanguage, Translations> = {
     navCards: 'カード',
     navWeeklyReview: '週間レビュー',
     navDaily: 'デイリー',
+    navFavorites: 'お気に入り',
     homeTitle: 'ひらめきをキャプチャ',
     homeSubtitle: '文章や音声で考えを記録。AIが整理と理解を手助けします。',
     yourNote: 'あなたのノート',
@@ -172,6 +193,11 @@ export const translations: Record<AppLanguage, Translations> = {
     logout: 'ログアウト',
     register: '登録',
     login: 'ログイン',
+    addToFavorites: 'お気に入りに追加',
+    removeFromFavorites: 'お気に入りから削除',
+    favorites: 'お気に入り',
+    noFavorites: 'お気に入りはまだありません',
+    favoritesTitle: 'マイお気に入り',
   },
 };
 

@@ -10,18 +10,49 @@ create table if not exists public.daily_inspiration (
 
 alter table public.daily_inspiration enable row level security;
 
--- Simple read policy for anon (adjust as you need)
+-- Read policy for authenticated users
 do $$
 begin
   if not exists (
     select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'daily_inspiration' and policyname = 'Enable read for anon'
+    where schemaname = 'public' and tablename = 'daily_inspiration' and policyname = 'Enable read for authenticated'
   ) then
-    create policy "Enable read for anon"
+    create policy "Enable read for authenticated"
       on public.daily_inspiration
       for select
-      to anon
+      to authenticated
       using (true);
+  end if;
+end$$;
+
+-- Insert policy for authenticated users
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'daily_inspiration' and policyname = 'Enable insert for authenticated'
+  ) then
+    create policy "Enable insert for authenticated"
+      on public.daily_inspiration
+      for insert
+      to authenticated
+      with check (true);
+  end if;
+end$$;
+
+-- Update policy for authenticated users
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'daily_inspiration' and policyname = 'Enable update for authenticated'
+  ) then
+    create policy "Enable update for authenticated"
+      on public.daily_inspiration
+      for update
+      to authenticated
+      using (true)
+      with check (true);
   end if;
 end$$;
 

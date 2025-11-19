@@ -96,6 +96,16 @@ export default function Navigation() {
               >
                 {t.navWeeklyReview}
               </Link>
+              <Link 
+                href="/favorites" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/favorites' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.navFavorites}
+              </Link>
             </div>
           </div>
 
@@ -171,6 +181,17 @@ export default function Navigation() {
                 }`}
               >
                 {t.navWeeklyReview}
+              </Link>
+              <Link 
+                href="/favorites" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname === '/favorites' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.navFavorites}
               </Link>
 
               <UserInfo mobile language={language} onMobileMenuClose={() => setMobileMenuOpen(false)} />

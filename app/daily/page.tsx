@@ -23,6 +23,8 @@ export default function DailyPage() {
   const [inspiration, setInspiration] = useState<Inspiration | null>(null);
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
   const [error, setError] = useState<string | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
 
   const t = getTranslation(language);
@@ -34,6 +36,57 @@ export default function DailyPage() {
     window.addEventListener('languageChanged', onLang);
     return () => window.removeEventListener('languageChanged', onLang);
   }, []);
+
+  // Check if current inspiration is favorited
+  useEffect(() => {
+    if (inspiration?.id) {
+      checkFavoriteStatus();
+    } else {
+      setIsFavorited(false);
+    }
+  }, [inspiration?.id]);
+
+  async function checkFavoriteStatus() {
+    if (!inspiration?.id) return;
+    try {
+      const res = await authFetch(`/api/favorites/check?inspirationId=${inspiration.id}`);
+      const data = await res.json();
+      setIsFavorited(data.isFavorited || false);
+    } catch (e) {
+      console.error('Error checking favorite status:', e);
+    }
+  }
+
+  async function toggleFavorite() {
+    if (!inspiration?.id || favoriteLoading) return;
+    
+    setFavoriteLoading(true);
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const res = await authFetch(`/api/favorites?inspirationId=${inspiration.id}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          setIsFavorited(false);
+        }
+      } else {
+        // Add to favorites
+        const res = await authFetch('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inspirationId: inspiration.id }),
+        });
+        if (res.ok) {
+          setIsFavorited(true);
+        }
+      }
+    } catch (e) {
+      console.error('Error toggling favorite:', e);
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
 
   async function fetchToday() {
     setLoading(true);
@@ -68,6 +121,10 @@ export default function DailyPage() {
       }
       const data = await res.json();
       setInspiration(data.inspiration);
+      // Check favorite status after generating new inspiration
+      if (data.inspiration?.id) {
+        setTimeout(() => checkFavoriteStatus(), 100);
+      }
     } catch (e: any) {
       console.error(e);
       setError(e?.message || 'Failed to generate');
@@ -153,8 +210,21 @@ export default function DailyPage() {
         <div className="text-center text-wood-600">Loading...</div>
       ) : inspiration ? (
         <div className="card">
-          <div className="mb-4 text-sm text-wood-600">
-            Date: {inspiration.date}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="text-sm text-wood-600">
+              Date: {inspiration.date}
+            </div>
+            <button
+              onClick={toggleFavorite}
+              disabled={favoriteLoading}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                isFavorited
+                  ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                  : 'bg-wood-100 text-wood-700 hover:bg-wood-200'
+              }`}
+            >
+              {isFavorited ? '⭐ ' + t.removeFromFavorites : '☆ ' + t.addToFavorites}
+            </button>
           </div>
 
           {/* Wooden Preview (re-using wooden style) */}
