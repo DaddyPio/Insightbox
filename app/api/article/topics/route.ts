@@ -84,14 +84,26 @@ export async function POST(request: NextRequest) {
       return `Note ${i + 1}:\nTitle: ${n.title || '(no title)'}\nContent: ${n.content}\nTags: ${tags}`;
     }).join('\n\n');
 
+    // Validate extraction data
+    if (!extraction || typeof extraction !== 'object') {
+      return NextResponse.json(
+        { error: 'Invalid extraction data', details: 'Extraction must be a valid object' },
+        { status: 400 }
+      );
+    }
+
     const userPrompt = `
 Mentor Style: ${mentorStyle}
 
 Selected Notes:
 ${notesText}
 
-Content Extraction:
+Content Extraction (use this to understand themes and insights):
 ${JSON.stringify(extraction, null, 2)}
+
+Based on the notes and extraction above, generate exactly 5 unique, creative article topics.
+Each topic must have a specific, attractive title (NOT generic like "Topic 1").
+Make sure the topics are relevant to the notes and mentor philosophy.
 
 Generate 5 article topics following the JSON format specified.
 `.trim();

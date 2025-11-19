@@ -137,11 +137,19 @@ export default function CreatePage() {
         throw new Error(data.error || 'Failed to extract content');
       }
       const data = await res.json();
+      console.log('Extraction data received:', data);
+      
+      if (!data.extraction) {
+        throw new Error('No extraction data returned');
+      }
+      
       setExtraction(data.extraction);
-      // Auto proceed to step 4 (generate topics)
       setStep(3);
-      // Generate topics automatically
-      setTimeout(() => handleStep4(), 500);
+      
+      // Generate topics automatically after a short delay
+      setTimeout(() => {
+        handleStep4();
+      }, 1000);
     } catch (e: any) {
       setError(e?.message || 'Failed to extract content');
     } finally {
@@ -150,9 +158,20 @@ export default function CreatePage() {
   }
 
   async function handleStep4() {
+    if (!extraction) {
+      setError('請先完成內容萃取');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
+      console.log('Generating topics with:', {
+        noteIds: selectedNoteIds,
+        mentorStyle: selectedMentor,
+        extraction: extraction,
+      });
+      
       const res = await authFetch('/api/article/topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -162,14 +181,31 @@ export default function CreatePage() {
           extraction,
         }),
       });
+      
+      const responseText = await res.text();
+      console.log('Topics API response status:', res.status);
+      console.log('Topics API response:', responseText);
+      
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const errorMsg = data.details 
-          ? `${data.error}: ${data.details}` 
-          : data.error || 'Failed to generate topics';
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || 'Failed to generate topics' };
+        }
+        const errorMsg = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : errorData.error || 'Failed to generate topics';
         throw new Error(errorMsg);
       }
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('Invalid response from server');
+      }
+      
       console.log('Received topics:', data);
       if (!data.topics || data.topics.length === 0) {
         throw new Error('No topics generated. Please try again.');

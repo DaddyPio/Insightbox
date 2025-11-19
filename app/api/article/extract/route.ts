@@ -90,12 +90,35 @@ Extract insights following the JSON format specified.
     });
 
     const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+    console.log('Raw extraction response:', raw);
+    
     let parsed;
     try {
       parsed = JSON.parse(raw);
-    } catch {
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      // Try to extract JSON block
       const match = raw.match(/\{[\s\S]*\}$/);
-      parsed = match ? JSON.parse(match[0]) : {};
+      if (match) {
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch {
+          parsed = {};
+        }
+      } else {
+        parsed = {};
+      }
+    }
+
+    console.log('Parsed extraction:', JSON.stringify(parsed, null, 2));
+
+    // Validate extraction has required fields
+    if (!parsed.key_points || !Array.isArray(parsed.key_points) || parsed.key_points.length === 0) {
+      console.error('Invalid extraction format - missing key_points');
+      return NextResponse.json(
+        { error: 'Failed to extract content', details: 'AI did not generate valid key points' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ extraction: parsed });
