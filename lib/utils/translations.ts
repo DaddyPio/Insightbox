@@ -95,6 +95,10 @@ export interface Translations {
   // Daily Inspiration Algorithm
   algorithmNote: string;
   algorithmTitle: string;
+  
+  // Guide
+  guide: string;
+  guideTitle: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -172,6 +176,8 @@ export const translations: Record<AppLanguage, Translations> = {
     cardStyleAction: '行動短句版',
     algorithmNote: '生成配方',
     algorithmTitle: '每日雞湯演算法說明',
+    guide: '使用說明',
+    guideTitle: 'InsightBox 官方使用說明',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -247,6 +253,8 @@ export const translations: Record<AppLanguage, Translations> = {
     cardStyleAction: 'Action Style',
     algorithmNote: 'Inspiration recipe',
     algorithmTitle: 'Daily Inspiration Algorithm',
+    guide: 'User Guide',
+    guideTitle: 'InsightBox User Guide',
   },
   'ja': {
     shareImagePreview: 'シェア画像プレビュー',
@@ -322,6 +330,8 @@ export const translations: Record<AppLanguage, Translations> = {
     cardStyleAction: 'アクションスタイル',
     algorithmNote: 'アルゴリズム情報',
     algorithmTitle: 'デイリーインスピレーションアルゴリズム',
+    guide: '使用ガイド',
+    guideTitle: 'InsightBox 使用ガイド',
   },
 };
 
