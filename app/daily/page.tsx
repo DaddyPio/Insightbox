@@ -5,6 +5,7 @@ import { toPng } from 'html-to-image';
 import { imageStyles } from '@/lib/utils/imageStyles';
 import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
+import { authFetch } from '@/lib/utils/authFetch';
 
 type Inspiration = {
   id: string;
@@ -38,7 +39,7 @@ export default function DailyPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/daily', { cache: 'no-store' });
+      const res = await authFetch('/api/daily', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setInspiration(data.inspiration);
@@ -57,7 +58,7 @@ export default function DailyPage() {
     setGenerating(true);
     setError(null);
     try {
-      const res = await fetch('/api/daily', { method: 'POST' });
+      const res = await authFetch('/api/daily', { method: 'POST' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to generate');
@@ -88,6 +89,25 @@ export default function DailyPage() {
         backgroundColor: bgColor,
       });
 
+      // 在手機上使用 Web Share API 保存到相簿
+      if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], `daily-inspiration-${inspiration.date}.png`, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Daily Inspiration',
+            });
+            return;
+          }
+        } catch (shareError) {
+          // 如果分享失敗，回退到下載方式
+          console.log('Share failed, falling back to download:', shareError);
+        }
+      }
+
+      // 桌面端或分享失敗時使用下載方式
       const a = document.createElement('a');
       a.href = dataUrl;
       a.download = `daily-inspiration-${inspiration.date}.png`;
