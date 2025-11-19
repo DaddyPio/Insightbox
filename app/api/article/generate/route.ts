@@ -171,20 +171,36 @@ Write a 500-1000 word article following the structure specified. The content mus
 
     let parsed;
     try {
-      parsed = JSON.parse(raw);
+      // Remove markdown code blocks if present
+      let cleanedRaw = raw;
+      if (cleanedRaw.includes('```json')) {
+        cleanedRaw = cleanedRaw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      } else if (cleanedRaw.includes('```')) {
+        cleanedRaw = cleanedRaw.replace(/```\s*/g, '').trim();
+      }
+      
+      parsed = JSON.parse(cleanedRaw);
     } catch (parseError: any) {
       console.error('JSON parse error:', parseError);
       console.error('Raw response that failed to parse:', raw.substring(0, 500));
-      // Try to extract JSON block
-      const match = raw.match(/\{[\s\S]*\}$/);
-      if (match) {
+      
+      // Try to extract JSON block (handle markdown code blocks)
+      let jsonMatch = raw.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/```\s*(\{[\s\S]*?\})\s*```/);
+      }
+      if (!jsonMatch) {
+        jsonMatch = raw.match(/\{[\s\S]*\}/);
+      }
+      
+      if (jsonMatch) {
         try {
-          parsed = JSON.parse(match[0]);
+          parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
         } catch {
           // If still fails, create structure from raw text
           parsed = { 
             title: selectedTopic?.title || 'Article', 
-            content: raw, 
+            content: raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim(), 
             key_quote: raw.substring(0, 100) 
           };
         }
@@ -192,10 +208,41 @@ Write a 500-1000 word article following the structure specified. The content mus
         // Fallback: create structure from raw text
         parsed = { 
           title: selectedTopic?.title || 'Article', 
-          content: raw, 
+          content: raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim(), 
           key_quote: raw.substring(0, 100) 
         };
       }
+    }
+    
+    // Clean up content if it contains JSON structure or markdown
+    if (parsed.content && typeof parsed.content === 'string') {
+      // Remove any markdown code blocks
+      parsed.content = parsed.content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      
+      // If content still looks like JSON, try to extract the actual content
+      if (parsed.content.startsWith('{') || parsed.content.includes('"content"')) {
+        try {
+          const contentJson = JSON.parse(parsed.content);
+          if (contentJson.content && typeof contentJson.content === 'string') {
+            parsed.content = contentJson.content;
+          }
+        } catch {
+          // If parsing fails, keep the original content
+        }
+      }
+      
+      // Clean up newline characters (convert \n to actual newlines)
+      parsed.content = parsed.content.replace(/\\n/g, '\n');
+    }
+    
+    // Clean up title if needed
+    if (parsed.title && typeof parsed.title === 'string') {
+      parsed.title = parsed.title.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    }
+    
+    // Clean up key_quote if needed
+    if (parsed.key_quote && typeof parsed.key_quote === 'string') {
+      parsed.key_quote = parsed.key_quote.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     }
 
     console.log('Parsed article:', {
