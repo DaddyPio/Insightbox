@@ -22,34 +22,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
     }
 
-    // Get user's favorites with inspiration details
-    const { data: favorites, error } = await supabase
+    // Get user's favorites
+    const { data: favorites, error: favoritesError } = await supabase
       .from('favorites')
-      .select(`
-        id,
-        created_at,
-        daily_inspiration:inspiration_id (
-          id,
-          date,
-          content_json,
-          created_at
-        )
-      `)
+      .select('id, inspiration_id, created_at')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching favorites:', error);
+    if (favoritesError) {
+      console.error('Error fetching favorites:', favoritesError);
       return NextResponse.json(
-        { error: 'Failed to fetch favorites', details: error.message },
+        { error: 'Failed to fetch favorites', details: favoritesError.message },
         { status: 500 }
       );
     }
 
-    // Transform the data to flatten the structure
-    const inspirations = (favorites || []).map((fav: any) => ({
-      favoriteId: fav.id,
-      favoritedAt: fav.created_at,
-      ...fav.daily_inspiration,
+    if (!favorites || favorites.length === 0) {
+      return NextResponse.json({ inspirations: [] });
+    }
+
+    // Get inspiration details for each favorite
+    const inspirationIds = favorites.map((fav: any) => fav.inspiration_id);
+    const { data: inspirationsData, error: inspirationsError } = await supabase
+      .from('daily_inspiration')
+      .select('id, date, content_json, created_at')
+      .in('id', inspirationIds);
+
+    if (inspirationsError) {
+      console.error('Error fetching inspirations:', inspirationsError);
+      return NextResponse.json(
+        { error: 'Failed to fetch inspirations', details: inspirationsError.message },
+        { status: 500 }
+      );
+    }
+
+    // Create a map of inspiration_id to favorite info
+    const favoriteMap = new Map(
+      favorites.map((fav: any) => [fav.inspiration_id, { favoriteId: fav.id, favoritedAt: fav.created_at }])
+    );
+
+    // Combine favorites with inspiration data
+    const inspirations = (inspirationsData || []).map((insp: any) => ({
+      ...insp,
+      ...favoriteMap.get(insp.id),
     }));
 
     return NextResponse.json({ inspirations });

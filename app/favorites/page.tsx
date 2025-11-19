@@ -43,16 +43,19 @@ export default function FavoritesPage() {
       const res = await authFetch('/api/favorites');
       if (res.ok) {
         const data = await res.json();
+        console.log('Favorites data:', data); // Debug log
         setInspirations(data.inspirations || []);
       } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Failed to fetch favorites:', errorData);
         if (res.status === 401) {
           router.push('/login');
           return;
         }
-        setError('Failed to load favorites');
+        setError(errorData.details || 'Failed to load favorites');
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching favorites:', e);
       setError('Failed to load favorites');
     } finally {
       setLoading(false);

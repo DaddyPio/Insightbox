@@ -69,6 +69,10 @@ export default function DailyPage() {
         });
         if (res.ok) {
           setIsFavorited(false);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          console.error('Failed to remove favorite:', errorData);
+          setError(errorData.details || 'Failed to remove favorite');
         }
       } else {
         // Add to favorites
@@ -79,10 +83,15 @@ export default function DailyPage() {
         });
         if (res.ok) {
           setIsFavorited(true);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          console.error('Failed to add favorite:', errorData);
+          setError(errorData.details || 'Failed to add favorite');
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error toggling favorite:', e);
+      setError(e?.message || 'Failed to toggle favorite');
     } finally {
       setFavoriteLoading(false);
     }
