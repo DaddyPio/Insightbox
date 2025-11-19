@@ -86,7 +86,8 @@ export default function Navigation() {
               >
                 {t.navDaily}
               </Link>
-              <Link 
+              {/* Weekly Review temporarily hidden */}
+              {/* <Link 
                 href="/weekly" 
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/weekly' 
@@ -95,7 +96,7 @@ export default function Navigation() {
                 }`}
               >
                 {t.navWeeklyReview}
-              </Link>
+              </Link> */}
               <Link 
                 href="/favorites" 
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -171,7 +172,8 @@ export default function Navigation() {
               >
                 Daily
               </Link>
-              <Link 
+              {/* Weekly Review temporarily hidden */}
+              {/* <Link 
                 href="/weekly" 
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
@@ -181,7 +183,7 @@ export default function Navigation() {
                 }`}
               >
                 {t.navWeeklyReview}
-              </Link>
+              </Link> */}
               <Link 
                 href="/favorites" 
                 onClick={() => setMobileMenuOpen(false)}
