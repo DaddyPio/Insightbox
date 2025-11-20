@@ -239,40 +239,6 @@ export default function DailyPage() {
             </button>
           </div>
 
-          {/* YouTube Link - Prominent Button */}
-          {inspiration.content_json?.song?.youtube_url && (
-            <div className="mb-6 flex justify-center">
-              <a
-                href={inspiration.content_json.song.youtube_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-3 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
-              >
-                <svg
-                  className="w-6 h-6 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-                <span className="font-semibold text-lg">
-                  {inspiration.content_json.song.youtube_url.includes('/results?search_query=')
-                    ? (language === 'zh-TW' ? '在 YouTube 搜尋' : language === 'ja' ? 'YouTube で検索' : 'Search on YouTube')
-                    : (language === 'zh-TW' ? '在 YouTube 播放' : language === 'ja' ? 'YouTube で再生' : 'Play on YouTube')}
-                </span>
-                <svg
-                  className="w-5 h-5 flex-shrink-0 transform group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
-            </div>
-          )}
-
           {/* Wooden Preview (re-using wooden style) */}
           <div className="flex justify-center mb-6">
             <div
@@ -404,8 +370,42 @@ export default function DailyPage() {
         </div>
       )}
 
+      {/* YouTube Link - Prominent Button */}
+      {inspiration?.content_json?.song?.youtube_url && (
+        <div className="mt-8 mb-4 flex justify-center">
+          <a
+            href={inspiration.content_json.song.youtube_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-3 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
+          >
+            <svg
+              className="w-6 h-6 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+            </svg>
+            <span className="font-semibold text-lg">
+              {inspiration.content_json.song.youtube_url.includes('/results?search_query=')
+                ? (language === 'zh-TW' ? '在 YouTube 搜尋' : language === 'ja' ? 'YouTube で検索' : 'Search on YouTube')
+                : (language === 'zh-TW' ? '在 YouTube 播放' : language === 'ja' ? 'YouTube で再生' : 'Play on YouTube')}
+            </span>
+            <svg
+              className="w-5 h-5 flex-shrink-0 transform group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      )}
+
       {/* Algorithm Note Link */}
-      <div className="mt-8 text-center">
+      <div className="mt-4 text-center">
         <Link 
           href="/daily/about" 
           className="text-sm text-wood-500 hover:text-wood-700 underline"
