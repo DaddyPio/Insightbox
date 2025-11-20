@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
     const { data: inspirationsData, error: inspirationsError } = await supabase
       .from('daily_inspiration')
       .select('id, date, content_json, created_at')
-      .in('id', inspirationIds);
+      .in('id', inspirationIds)
+      .order('date', { ascending: false }); // Sort by date, newest first
 
     if (inspirationsError) {
       console.error('Error fetching inspirations:', inspirationsError);
@@ -72,6 +73,13 @@ export async function GET(request: NextRequest) {
       ...insp,
       ...favoriteMap.get(insp.id),
     }));
+
+    // Sort by date (newest first) - additional sort in case database order wasn't applied
+    inspirations.sort((a: any, b: any) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA; // Descending order (newest first)
+    });
 
     return NextResponse.json({ inspirations });
   } catch (error: any) {
