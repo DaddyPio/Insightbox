@@ -31,11 +31,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ isFavorited: false });
     }
 
+    // Get current user to check their favorites
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return NextResponse.json({ isFavorited: false });
+    }
+
     const { data, error } = await supabase
       .from('favorites')
       .select('id')
       .eq('inspiration_id', inspirationId)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     return NextResponse.json({ isFavorited: !!data && !error });
   } catch (error: any) {

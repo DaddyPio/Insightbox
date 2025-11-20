@@ -43,6 +43,8 @@ export default function DailyPage() {
   // Check if current inspiration is favorited
   useEffect(() => {
     if (inspiration?.id) {
+      // Reset to false first, then check
+      setIsFavorited(false);
       checkFavoriteStatus();
     } else {
       setIsFavorited(false);
@@ -133,10 +135,8 @@ export default function DailyPage() {
       }
       const data = await res.json();
       setInspiration(data.inspiration);
-      // Check favorite status after generating new inspiration
-      if (data.inspiration?.id) {
-        setTimeout(() => checkFavoriteStatus(), 100);
-      }
+      // Reset favorite status for new inspiration
+      setIsFavorited(false);
     } catch (e: any) {
       console.error(e);
       setError(e?.message || 'Failed to generate');
