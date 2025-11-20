@@ -358,15 +358,6 @@ export default function DailyPage() {
                     )}
                   </div>
                 )}
-
-                <div className="absolute bottom-6 left-0 right-0 text-center">
-                  <button
-                    onClick={downloadImage}
-                    className="btn-primary"
-                  >
-                    Download Image
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -426,6 +417,18 @@ export default function DailyPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </a>
+        </div>
+      )}
+
+      {/* Download Image Button */}
+      {inspiration && (
+        <div className="mt-4 mb-4 flex justify-center">
+          <button
+            onClick={downloadImage}
+            className="btn-primary"
+          >
+            Download Image
+          </button>
         </div>
       )}
 
