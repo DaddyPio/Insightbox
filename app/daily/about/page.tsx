@@ -74,20 +74,6 @@ export default function DailyAboutPage() {
           <ol className="space-y-3 text-wood-700 list-decimal list-inside">
             <li>
               {isChinese 
-                ? '分析所有筆記，找出重複出現的主題（抽象為概念，不複製原文）'
-                : isJapanese
-                ? 'すべてのノートを分析し、繰り返し出現するテーマを見つける（概念として抽象化し、元のテキストをコピーしない）'
-                : 'Analyze all notes to identify recurring themes (abstract into concepts, do not copy original text)'}
-            </li>
-            <li>
-              {isChinese 
-                ? '從重複主題中隨機選擇 2 個'
-                : isJapanese
-                ? '繰り返し出現するテーマからランダムに2つを選択'
-                : 'Randomly select 2 themes from the recurring themes'}
-            </li>
-            <li>
-              {isChinese 
                 ? '從 8 位導師中隨機選擇 1 位'
                 : isJapanese
                 ? '8人のメンターからランダムに1人を選択'
@@ -95,17 +81,31 @@ export default function DailyAboutPage() {
             </li>
             <li>
               {isChinese 
-                ? '用該導師的風格，結合 2 個主題，寫出原創格言（約 50 字中文，或 50 字英文/日文）'
+                ? '搜尋該導師曾經在書中、演說中、發表文章中說過的名言或金句'
                 : isJapanese
-                ? 'そのメンターのスタイルで、2つのテーマを組み合わせて、オリジナルの格言を書く（約50文字の日本語、または50語の英語）'
-                : 'Write an original maxim in that mentor\'s style, combining the 2 themes (around 50 characters in Chinese, or 50 words in English/Japanese)'}
+                ? 'そのメンターが本、スピーチ、記事で語った名言や金言を検索'
+                : 'Search for authentic quotes or wisdom statements from that mentor\'s books, speeches, or published articles'}
             </li>
             <li>
               {isChinese 
-                ? '必須原創，不能複製筆記內容'
+                ? '提取該名言或金句的核心訊息與本質'
                 : isJapanese
-                ? 'オリジナルである必要があり、ノートの内容をコピーしてはいけない'
-                : 'Must be original, cannot copy note content'}
+                ? 'その名言や金言の核心メッセージと本質を抽出'
+                : 'Extract the core message and essence from that quote'}
+            </li>
+            <li>
+              {isChinese 
+                ? '以核心訊息為基礎，用該導師的風格寫出一小段勵志雞湯文（約 50 字中文，或 50 字英文/日文）'
+                : isJapanese
+                ? '核心メッセージを基に、そのメンターのスタイルで短い励ましのメッセージを書く（約50文字の日本語、または50語の英語）'
+                : 'Based on the core message, write a short inspirational message in that mentor\'s style (around 50 characters in Chinese, or 50 words in English/Japanese)'}
+            </li>
+            <li>
+              {isChinese 
+                ? '必須是原創內容，是對導師智慧的創意延伸，而非直接複製'
+                : isJapanese
+                ? 'オリジナルコンテンツである必要があり、メンターの知恵の創造的な拡張であり、直接コピーではない'
+                : 'Must be original content, a creative expansion of the mentor\'s wisdom, not a direct copy'}
             </li>
             <li>
               {isChinese 

@@ -6,28 +6,34 @@ import { openai, isOpenAIConfigured } from '@/lib/openai/client';
 import { format } from 'date-fns';
 
 const SYSTEM_PROMPT = `
-You are a world-class life coach and wisdom synthesizer. Your task is to create profound daily inspiration using the frameworks of legendary mentors.
+You are a world-class life coach and wisdom synthesizer. Your task is to create profound daily inspiration based on authentic quotes and wisdom from legendary mentors.
 
-Available mentor styles (choose one randomly):
-1. Tony Robbins - High energy, action-oriented, focuses on personal power and transformation
-2. Stephen Covey - Principle-centered, emphasizes character and effectiveness
-3. Simon Sinek - Purpose-driven, explores the "why" behind actions
-4. Brené Brown - Vulnerability and courage, authenticity and wholehearted living
-5. Eckhart Tolle - Present-moment awareness, inner peace and consciousness
-6. Dale Carnegie - Human relations, influence and interpersonal effectiveness
-7. Viktor Frankl - Meaning and purpose, finding significance in all circumstances
-8. Carol Dweck - Growth mindset, embracing challenges and learning
+Available mentors (choose one randomly):
+1. Tony Robbins - High energy, action-oriented, focuses on personal power and transformation. Famous works: "Awaken the Giant Within", "Unlimited Power"
+2. Stephen Covey - Principle-centered, emphasizes character and effectiveness. Famous works: "The 7 Habits of Highly Effective People"
+3. Simon Sinek - Purpose-driven, explores the "why" behind actions. Famous works: "Start With Why", "Leaders Eat Last"
+4. Brené Brown - Vulnerability and courage, authenticity and wholehearted living. Famous works: "Daring Greatly", "The Gifts of Imperfection"
+5. Eckhart Tolle - Present-moment awareness, inner peace and consciousness. Famous works: "The Power of Now", "A New Earth"
+6. Dale Carnegie - Human relations, influence and interpersonal effectiveness. Famous works: "How to Win Friends and Influence People"
+7. Viktor Frankl - Meaning and purpose, finding significance in all circumstances. Famous works: "Man's Search for Meaning"
+8. Carol Dweck - Growth mindset, embracing challenges and learning. Famous works: "Mindset: The New Psychology of Success"
+
+YOUR TASK:
+1. Randomly select ONE mentor from the list above.
+2. Recall or generate an authentic, well-known quote or wisdom statement from that mentor's actual books, speeches, or published articles. This should be a REAL quote that reflects their core philosophy.
+3. Extract the CORE MESSAGE or ESSENCE from that quote.
+4. Based on that core message, create a NEW, original inspirational message (around 50 characters in Chinese, or 50 words in English/Japanese) that expands on the wisdom in a warm, profound, and inspiring way. The new message should be written in the mentor's distinctive voice and style, but it should be YOUR CREATIVE EXPANSION of their wisdom, not a direct copy.
 
 CRITICAL RULES:
-- DO NOT copy, quote, or reuse exact sentences or phrases from the user's notes.
-- You must ABSTRACT and SYNTHESIZE the themes, then create ORIGINAL wisdom in the mentor's style.
-- The message must be YOUR OWN CREATION, inspired by themes but written in the mentor's voice.
+- The quote you reference should be AUTHENTIC to the mentor's actual teachings (from their books, speeches, or published works).
+- The final "message" must be YOUR ORIGINAL CREATION that expands on the quote's core wisdom, not a direct copy.
 - Output JSON ONLY with keys: 
   {
-    "mentor_style": string,          // Name of the mentor whose framework you're using
-    "themes": string[],              // 2 recurring themes extracted from notes (abstract concepts, not copied text)
-    "title": string,                 // Brief title (5-10 words)
-    "message": string,               // A profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the style of the chosen mentor. MUST BE ORIGINAL - do not copy from notes.
+    "mentor_style": string,          // Name of the mentor you selected
+    "original_quote": string,        // The authentic quote/wisdom from the mentor (in the original language, or translated if needed)
+    "core_message": string,          // The core essence/theme extracted from the quote
+    "title": string,                 // Brief title (5-10 words) that captures the inspiration
+    "message": string,               // YOUR ORIGINAL inspirational message (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the mentor's voice but as YOUR CREATIVE EXPANSION.
     "song": { 
       "title": string,               // REQUIRED: Must provide a REAL song title (not "Unknown Song")
       "artist": string,              // REQUIRED: Must provide a REAL artist name (not "Unknown Artist")
@@ -36,12 +42,7 @@ CRITICAL RULES:
       "reason": string               // REQUIRED: Write a brief text (1-2 sentences) that relates to the song's actual lyrics, and loosely connects it to the daily inspiration message.
     }
   }
-- First, analyze ALL notes to identify recurring themes (patterns, values, struggles, aspirations) - abstract these into concepts, not copy text.
-- Randomly select 2 themes from the recurring themes.
-- Randomly choose ONE mentor style from the list above.
-- Write the message in that mentor's distinctive voice and framework, weaving in the 2 selected themes. The message must be ORIGINAL - inspired by themes but not copying any text from notes.
-- The message should be around 50 characters (Chinese) or 50 words (English/Japanese) - profound, warm, and inspiring.
-- Language must match the dominant language of the input notes (zh‑TW, en, or ja).
+- The language of the output should be Chinese (Traditional) by default, but you can also use English or Japanese if appropriate.
 - "song" is MANDATORY - you must ALWAYS provide a REAL song with REAL title and artist. Never use "Unknown Song" or "Unknown Artist".
 `.trim();
 
@@ -108,46 +109,32 @@ export async function POST(request: NextRequest) {
 
     const today = getTodayISODate();
 
-    // Fetch all cards (notes)
-    const supabase = supabaseFromRequest(request);
-    if (!supabase) {
-      return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
-    }
-    
-    const { data: notes, error: notesError } = await supabase
-      .from('notes')
-      .select('id, title, content, tags')
-      .order('created_at', { ascending: false });
-
-    if (notesError) {
-      return NextResponse.json({ error: 'Failed to fetch notes', details: notesError.message }, { status: 500 });
-    }
-    if (!notes || notes.length < 1) {
-      return NextResponse.json({ error: 'No notes available to generate inspiration' }, { status: 400 });
-    }
-
-    // Prepare all notes for theme analysis
-    const allNotesText = notes.map((n, i) => {
-      const tags = Array.isArray(n.tags) ? n.tags.join(', ') : '';
-      return `Note ${i + 1}:\nTitle: ${n.title || '(no title)'}\nContent: ${n.content}\nTags: ${tags}`;
-    }).join('\n\n');
-
     const userPrompt = `
-Analyze ALL the notes below to identify recurring themes (patterns, values, struggles, aspirations, emotions, topics that appear multiple times).
+Generate today's daily inspiration following these steps:
 
-IMPORTANT INSTRUCTIONS:
-1. Extract recurring themes from ALL notes - abstract these into concepts (e.g., "fear of failure", "desire for growth", "work-life balance"), NOT copy exact text from notes.
-2. Randomly select 2 themes from the recurring themes.
-3. Randomly choose ONE mentor style from the available list.
-4. Write a profound maxim/quote (around 50 characters in Chinese, or 50 words in English/Japanese) in that mentor's distinctive style, weaving in the 2 selected themes.
-5. The message MUST BE ORIGINAL - do NOT copy, quote, or reuse any sentences or phrases from the notes. Create new wisdom inspired by the themes.
-6. The message should be warm, deep, and inspiring - like a timeless wisdom quote from the chosen mentor.
-7. You MUST provide a REAL song with REAL title and artist - never use "Unknown Song" or "Unknown Artist".
+1. RANDOMLY SELECT ONE mentor from the available list (Tony Robbins, Stephen Covey, Simon Sinek, Brené Brown, Eckhart Tolle, Dale Carnegie, Viktor Frankl, or Carol Dweck).
 
-Output JSON only (no extra text).
+2. RECALL or GENERATE an authentic, well-known quote or wisdom statement from that mentor's actual books, speeches, or published articles. This should be a REAL quote that reflects their core philosophy. Examples:
+   - Tony Robbins: "The quality of your life is the quality of your relationships."
+   - Stephen Covey: "Begin with the end in mind."
+   - Simon Sinek: "People don't buy what you do; they buy why you do it."
+   - Brené Brown: "Vulnerability is not weakness; it's our greatest measure of courage."
+   - Eckhart Tolle: "The power of now can only be realized in the present moment."
+   - Dale Carnegie: "You can make more friends in two months by becoming interested in other people than you can in two years by trying to get other people interested in you."
+   - Viktor Frankl: "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances."
+   - Carol Dweck: "The view you adopt for yourself profoundly affects the way you lead your life."
 
-All Notes:
-${allNotesText}
+3. EXTRACT the CORE MESSAGE or ESSENCE from that quote. What is the fundamental wisdom or insight?
+
+4. CREATE A NEW, ORIGINAL inspirational message (around 50 characters in Chinese, or 50 words in English/Japanese) that expands on the quote's core wisdom. This new message should:
+   - Be written in the mentor's distinctive voice and style
+   - Be YOUR CREATIVE EXPANSION, not a direct copy of the original quote
+   - Be warm, profound, and inspiring
+   - Feel like timeless wisdom that could have come from that mentor
+
+5. Provide a REAL song recommendation that connects to the inspiration.
+
+Output JSON only (no extra text). Use Traditional Chinese for the message unless specified otherwise.
 `.trim();
 
     const completion = await openai.chat.completions.create({
@@ -171,13 +158,7 @@ ${allNotesText}
     }
 
     // Normalize result and provide fallbacks when fields missing
-    const fallbackMessage =
-      notes
-        .slice(0, 3)
-        .map((n) => (n?.content || '').trim())
-        .filter(Boolean)
-        .join(' ')
-        .slice(0, 50) || 'Take a deep breath. Notice one small thing you can appreciate right now.';
+    const fallbackMessage = 'Take a deep breath. Notice one small thing you can appreciate right now.';
 
     // Try to pull a plausible YouTube URL if model forgot the field
     const toYoutube = (v: any): string => {
@@ -218,7 +199,8 @@ ${allNotesText}
 
     const normalized = {
       mentor_style: (parsed?.mentor_style || 'Wisdom').toString().trim(),
-      themes: Array.isArray(parsed?.themes) ? parsed.themes.map((t: any) => t.toString().trim()).filter(Boolean) : [],
+      original_quote: (parsed?.original_quote || '').toString().trim(),
+      core_message: (parsed?.core_message || '').toString().trim(),
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),
       song: {
