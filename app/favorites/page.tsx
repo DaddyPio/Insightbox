@@ -12,7 +12,9 @@ type Inspiration = {
   date: string;
   content_json: {
     mentor_style?: string;
-    themes?: string[];
+    original_quote?: string;
+    core_message?: string;
+    themes?: string[]; // Kept for backward compatibility
     title?: string;
     message?: string;
     song?: { title?: string; artist?: string; youtube_url?: string; reason?: string };
