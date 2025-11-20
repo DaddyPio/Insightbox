@@ -31,6 +31,7 @@ CRITICAL RULES:
   {
     "mentor_style": string,          // Name of the mentor you selected
     "original_quote": string,        // The authentic quote/wisdom from the mentor (in the original language, or translated if needed)
+    "quote_source": string,          // The source of the quote (e.g., "2025 TED talk", "The 7 Habits of Highly Effective People (1989)", "Start With Why (2009)")
     "core_message": string,          // The core essence/theme extracted from the quote
     "title": string,                 // Brief title (5-10 words) that captures the inspiration
     "message": string,               // YOUR ORIGINAL inspirational message (around 50 characters in Chinese, or 50 words in English/Japanese). Must be warm, deep, and inspiring. Written in the mentor's voice but as YOUR CREATIVE EXPANSION.
@@ -120,15 +121,15 @@ Generate today's daily inspiration following these steps:
 
 1. RANDOMLY SELECT ONE mentor from the available list (Tony Robbins, Stephen Covey, Simon Sinek, Brené Brown, Eckhart Tolle, Dale Carnegie, Viktor Frankl, or Carol Dweck).
 
-2. RECALL or GENERATE an authentic, well-known quote or wisdom statement from that mentor's actual books, speeches, or published articles. This should be a REAL quote that reflects their core philosophy. Examples:
-   - Tony Robbins: "The quality of your life is the quality of your relationships."
-   - Stephen Covey: "Begin with the end in mind."
-   - Simon Sinek: "People don't buy what you do; they buy why you do it."
-   - Brené Brown: "Vulnerability is not weakness; it's our greatest measure of courage."
-   - Eckhart Tolle: "The power of now can only be realized in the present moment."
-   - Dale Carnegie: "You can make more friends in two months by becoming interested in other people than you can in two years by trying to get other people interested in you."
-   - Viktor Frankl: "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances."
-   - Carol Dweck: "The view you adopt for yourself profoundly affects the way you lead your life."
+2. RECALL or GENERATE an authentic, well-known quote or wisdom statement from that mentor's actual books, speeches, or published articles. This should be a REAL quote that reflects their core philosophy. Also note the SOURCE of the quote (e.g., book title with year, TED talk with year, article title, etc.). Examples:
+   - Tony Robbins: "The quality of your life is the quality of your relationships." (Source: "Awaken the Giant Within" (1991))
+   - Stephen Covey: "Begin with the end in mind." (Source: "The 7 Habits of Highly Effective People" (1989))
+   - Simon Sinek: "People don't buy what you do; they buy why you do it." (Source: "Start With Why" (2009) or "2009 TED talk")
+   - Brené Brown: "Vulnerability is not weakness; it's our greatest measure of courage." (Source: "Daring Greatly" (2012) or "2010 TED talk")
+   - Eckhart Tolle: "The power of now can only be realized in the present moment." (Source: "The Power of Now" (1997))
+   - Dale Carnegie: "You can make more friends in two months by becoming interested in other people than you can in two years by trying to get other people interested in you." (Source: "How to Win Friends and Influence People" (1936))
+   - Viktor Frankl: "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances." (Source: "Man's Search for Meaning" (1946))
+   - Carol Dweck: "The view you adopt for yourself profoundly affects the way you lead your life." (Source: "Mindset: The New Psychology of Success" (2006))
 
 3. EXTRACT the CORE MESSAGE or ESSENCE from that quote. What is the fundamental wisdom or insight?
 
@@ -206,6 +207,7 @@ Output JSON only (no extra text). Use Traditional Chinese for the message unless
     const normalized = {
       mentor_style: (parsed?.mentor_style || 'Wisdom').toString().trim(),
       original_quote: (parsed?.original_quote || '').toString().trim(),
+      quote_source: (parsed?.quote_source || '').toString().trim(),
       core_message: (parsed?.core_message || '').toString().trim(),
       title: (parsed?.title || 'Daily Inspiration').toString().trim(),
       message: (parsed?.message || fallbackMessage).toString().trim(),

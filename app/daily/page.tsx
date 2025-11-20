@@ -14,6 +14,7 @@ type Inspiration = {
   content_json: {
     mentor_style?: string;
     original_quote?: string;
+    quote_source?: string;
     core_message?: string;
     themes?: string[]; // Kept for backward compatibility
     title?: string;
@@ -333,6 +334,23 @@ export default function DailyPage() {
                         {inspiration.content_json.song.reason}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Mentor source attribution */}
+                {inspiration.content_json?.mentor_style && (
+                  <div
+                    className="text-xs mt-4 pt-3 border-t"
+                    style={{ 
+                      color: style.textColor, 
+                      opacity: 0.6,
+                      borderColor: style.textColor,
+                      borderTopWidth: '1px',
+                      borderTopStyle: 'solid'
+                    }}
+                  >
+                    {inspiration.content_json.mentor_style}
+                    {inspiration.content_json.quote_source && `, ${inspiration.content_json.quote_source}`}
                   </div>
                 )}
 
