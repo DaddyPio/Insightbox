@@ -22,10 +22,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
     }
 
-    // Get user's favorites
+    // Get current user ID
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized', details: 'User not found' }, { status: 401 });
+    }
+
+    // Get user's favorites (filtered by user_id)
     const { data: favorites, error: favoritesError } = await supabase
       .from('favorites')
       .select('id, inspiration_id, created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (favoritesError) {
