@@ -198,6 +198,28 @@ export default function FavoritesPage() {
                       style={{ backgroundColor: style.decorativeLine }}
                     />
 
+                    {/* Mentor source attribution - placed after title, before song */}
+                    {inspiration.content_json?.mentor_style && (
+                      <div
+                        className="text-xs mb-4"
+                        style={{ 
+                          color: style.textColor, 
+                          opacity: 0.6
+                        }}
+                      >
+                        {inspiration.content_json.mentor_style}
+                        {inspiration.content_json.quote_source && `, ${inspiration.content_json.quote_source}`}
+                      </div>
+                    )}
+
+                    {/* Separator line between source and song */}
+                    {inspiration.content_json?.mentor_style && inspiration.content_json?.song && (
+                      <div
+                        className="w-16 h-px mb-4 mx-auto"
+                        style={{ backgroundColor: style.decorativeLine, opacity: 0.5 }}
+                      />
+                    )}
+
                     {inspiration.content_json?.song && (
                       <div
                         className="text-sm"
@@ -226,23 +248,6 @@ export default function FavoritesPage() {
                             {inspiration.content_json.song.reason}
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* Mentor source attribution */}
-                    {inspiration.content_json?.mentor_style && (
-                      <div
-                        className="text-xs mt-4 pt-3 border-t"
-                        style={{ 
-                          color: style.textColor, 
-                          opacity: 0.6,
-                          borderColor: style.textColor,
-                          borderTopWidth: '1px',
-                          borderTopStyle: 'solid'
-                        }}
-                      >
-                        {inspiration.content_json.mentor_style}
-                        {inspiration.content_json.quote_source && `, ${inspiration.content_json.quote_source}`}
                       </div>
                     )}
                   </div>
