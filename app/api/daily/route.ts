@@ -109,6 +109,12 @@ export async function POST(request: NextRequest) {
 
     const today = getTodayISODate();
 
+    // Initialize Supabase client for database operations
+    const supabase = supabaseFromRequest(request);
+    if (!supabase) {
+      return NextResponse.json({ error: 'Failed to initialize Supabase client' }, { status: 500 });
+    }
+
     const userPrompt = `
 Generate today's daily inspiration following these steps:
 
