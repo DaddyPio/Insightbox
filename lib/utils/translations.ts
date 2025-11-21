@@ -106,6 +106,51 @@ export interface Translations {
   pleaseLoginOrSignup: string;
   goToLogin: string;
   goToSignup: string;
+  
+  // Letters to Kids
+  navLetters: string;
+  lettersTitle: string;
+  lettersSubtitle: string;
+  lettersDescription: string;
+  lettersFutureNote: string;
+  newLetter: string;
+  pastLetters: string;
+  selectChild: string;
+  allChildren: string;
+  oldestSon: string;
+  youngestSon: string;
+  customName: string;
+  enterChildName: string;
+  toneSelector: string;
+  toneWarm: string;
+  toneHonest: string;
+  toneStory: string;
+  toneShort: string;
+  rawTextLabel: string;
+  rawTextPlaceholder: string;
+  generateLetter: string;
+  regenerating: string;
+  regenerateLetter: string;
+  letterTitle: string;
+  letterContent: string;
+  saveLetter: string;
+  copyText: string;
+  copied: string;
+  editLetter: string;
+  noLetters: string;
+  filterByChild: string;
+  filterAll: string;
+  letterTo: string;
+  viewLetter: string;
+  originalText: string;
+  showOriginal: string;
+  hideOriginal: string;
+  favoriteLetter: string;
+  unfavoriteLetter: string;
+  deleteLetter: string;
+  letterSaved: string;
+  letterDeleted: string;
+  letterUpdated: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -190,6 +235,49 @@ export const translations: Record<AppLanguage, Translations> = {
     pleaseLoginOrSignup: '請先註冊或登入以使用此功能',
     goToLogin: '前往登入',
     goToSignup: '前往註冊',
+    navLetters: '寫給孩子的信',
+    lettersTitle: '寫給孩子的信',
+    lettersSubtitle: '用說的，讓 AI 幫你整理成一封好讀、溫暖的文字',
+    lettersDescription: '這裡是專門寫給孩子們的信。你可以用說的，讓 AI 幫你整理成一封好讀、溫暖的文字。',
+    lettersFutureNote: '未來可以匯出、收藏，甚至在孩子長大時送給他們。',
+    newLetter: '新建信件',
+    pastLetters: '過去的信件',
+    selectChild: '寫給',
+    allChildren: '全部孩子',
+    oldestSon: '大兒子',
+    youngestSon: '小兒子',
+    customName: '自訂名稱',
+    enterChildName: '輸入孩子名稱',
+    toneSelector: '語氣風格',
+    toneWarm: '溫暖鼓勵',
+    toneHonest: '坦誠對話',
+    toneStory: '故事式分享',
+    toneShort: '簡短提醒',
+    rawTextLabel: '原始語音轉文字',
+    rawTextPlaceholder: '語音轉換後的文字會顯示在這裡，你可以稍作編輯...',
+    generateLetter: '生成寫給孩子的信',
+    regenerating: '重新生成中...',
+    regenerateLetter: '重生一次',
+    letterTitle: '信件標題',
+    letterContent: '信件內容',
+    saveLetter: '儲存這封信',
+    copyText: '複製文字',
+    copied: '已複製',
+    editLetter: '編輯信件',
+    noLetters: '還沒有寫過信給孩子',
+    filterByChild: '篩選',
+    filterAll: '全部',
+    letterTo: '給',
+    viewLetter: '查看信件',
+    originalText: '原始文字',
+    showOriginal: '顯示原始文字',
+    hideOriginal: '隱藏原始文字',
+    favoriteLetter: '收藏',
+    unfavoriteLetter: '取消收藏',
+    deleteLetter: '刪除',
+    letterSaved: '信件已儲存',
+    letterDeleted: '信件已刪除',
+    letterUpdated: '信件已更新',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
