@@ -443,7 +443,14 @@ export default function CreatePage() {
           <p className="text-wood-600 mb-6">{t.step1Description}</p>
 
           {notes.length === 0 ? (
-            <p className="text-wood-600">沒有可用的筆記，請先創建一些筆記。</p>
+            <div className="text-center py-8 bg-wood-50 rounded-lg p-6 border border-wood-200">
+              <p className="text-wood-600 mb-4">
+                {language === 'zh-TW' ? '沒有可用的筆記，請先創建一些筆記。' : language === 'ja' ? '利用可能なノートがありません。まずノートを作成してください。' : 'No notes available. Please create some notes first.'}
+              </p>
+              <Link href="/" className="btn-primary inline-block">
+                {t.goToHome}
+              </Link>
+            </div>
           ) : (
             <>
               <div className="grid gap-4 mb-6">
