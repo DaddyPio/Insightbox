@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
+// Force dynamic rendering for this page (uses searchParams)
+export const dynamic = 'force-dynamic';
+
 /**
  * This page listens for auth sync messages from browser tabs
  * When user logs in via email link in browser, this page in PWA

@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import Link from 'next/link';
 
+// Force dynamic rendering for this page (uses searchParams)
+export const dynamic = 'force-dynamic';
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

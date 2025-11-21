@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_TC, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
@@ -22,19 +22,20 @@ export const metadata: Metadata = {
   title: "InsightBox - Capture Your Ideas",
   description: "A personal idea-capturing app with AI-powered insights",
   manifest: "/manifest.webmanifest",
-  themeColor: "#8B6F47",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "InsightBox",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover",
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#8B6F47",
 };
 
 export default function RootLayout({
