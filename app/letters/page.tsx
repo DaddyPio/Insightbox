@@ -32,8 +32,7 @@ type GeneratedLetter = {
 export default function LettersPage() {
   const [activeTab, setActiveTab] = useState<'new' | 'past'>('new');
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
-  const [childName, setChildName] = useState<string>('全部孩子');
-  const [customChildName, setCustomChildName] = useState<string>('');
+  const [childName, setChildName] = useState<string>('');
   const [tone, setTone] = useState<'warm' | 'honest' | 'story' | 'short'>('warm');
   const [rawText, setRawText] = useState<string>('');
   const [generatedLetter, setGeneratedLetter] = useState<GeneratedLetter | null>(null);
@@ -81,11 +80,7 @@ export default function LettersPage() {
     setSuccess(null);
 
     try {
-      const finalChildName = childName === '全部孩子' || childName === 'all' 
-        ? undefined 
-        : childName === '自訂名稱' || childName === 'custom'
-        ? customChildName.trim() || undefined
-        : childName;
+      const finalChildName = childName.trim() || undefined;
 
       const res = await authFetch('/api/letters/generate', {
         method: 'POST',
@@ -125,11 +120,7 @@ export default function LettersPage() {
     setSuccess(null);
 
     try {
-      const finalChildName = childName === '全部孩子' || childName === 'all' 
-        ? '全部孩子'
-        : childName === '自訂名稱' || childName === 'custom'
-        ? customChildName.trim() || '全部孩子'
-        : childName;
+      const finalChildName = childName.trim() || '全部孩子';
 
       const res = await authFetch('/api/letters', {
         method: 'POST',
@@ -265,9 +256,9 @@ export default function LettersPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
+      <div className="mb-8 bg-wood-50 p-6 rounded-lg">
         <h1 className="text-4xl font-serif font-bold text-wood-800 mb-4">
-          {t.lettersTitle}
+          {isChinese ? '給孩子的信' : isJapanese ? '子供への手紙' : 'Letters to Kids'}
         </h1>
         <p className="text-wood-600 text-lg mb-2">
           {t.lettersDescription}
@@ -316,40 +307,19 @@ export default function LettersPage() {
       {/* New Letter Tab */}
       {activeTab === 'new' && (
         <div className="space-y-6">
-          {/* Child Selector */}
+          {/* Child Name Input */}
           <div>
-            <label className="block text-sm font-medium text-wood-700 mb-2">
+            <label htmlFor="childName" className="block text-sm font-medium text-wood-700 mb-2">
               {t.selectChild}
             </label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: isChinese ? '全部孩子' : 'all', label: t.allChildren },
-                { value: isChinese ? '大兒子' : 'oldest', label: t.oldestSon },
-                { value: isChinese ? '小兒子' : 'youngest', label: t.youngestSon },
-                { value: isChinese ? '自訂名稱' : 'custom', label: t.customName },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setChildName(option.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    childName === option.value
-                      ? 'bg-wood-800 text-white'
-                      : 'bg-wood-100 text-wood-700 hover:bg-wood-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            {childName === (isChinese ? '自訂名稱' : 'custom') && (
-              <input
-                type="text"
-                value={customChildName}
-                onChange={(e) => setCustomChildName(e.target.value)}
-                placeholder={t.enterChildName}
-                className="mt-2 input-field"
-              />
-            )}
+            <input
+              id="childName"
+              type="text"
+              value={childName}
+              onChange={(e) => setChildName(e.target.value)}
+              placeholder={t.enterChildName}
+              className="input-field"
+            />
           </div>
 
           {/* Tone Selector */}
