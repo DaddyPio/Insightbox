@@ -381,36 +381,53 @@ export default function CreatePage() {
 
   const style = imageStyles['wooden'];
 
+  const stepLabels = [
+    { num: 1, label: language === 'zh-TW' ? '選擇卡片' : language === 'ja' ? 'カードを選択' : 'Select Cards' },
+    { num: 2, label: language === 'zh-TW' ? '選擇導師' : language === 'ja' ? 'メンターを選択' : 'Select Mentor' },
+    { num: 3, label: language === 'zh-TW' ? '內容萃取' : language === 'ja' ? 'コンテンツ抽出' : 'Extract Content' },
+    { num: 4, label: language === 'zh-TW' ? '選擇主題' : language === 'ja' ? 'トピックを選択' : 'Select Topic' },
+    { num: 5, label: language === 'zh-TW' ? '產生文章' : language === 'ja' ? '記事を生成' : 'Generate Article' },
+    { num: 6, label: language === 'zh-TW' ? '儲存/分享' : language === 'ja' ? '保存/共有' : 'Save/Share' },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-serif font-bold text-wood-800 mb-6">
-        {t.createArticle}
-      </h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-serif font-bold text-wood-800 mb-2">
+          {t.createArticle}
+        </h1>
+        <p className="text-wood-600">
+          {t.createDescription}
+        </p>
+      </div>
 
-      {/* Step Indicator */}
-      <div className="mb-8 flex items-center justify-between">
-        {[1, 2, 3, 4, 5, 6].map((s) => (
-          <div key={s} className="flex items-center flex-1">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                s === step
-                  ? 'bg-accent text-white'
-                  : s < step
-                  ? 'bg-wood-300 text-wood-800'
-                  : 'bg-wood-100 text-wood-600'
-              }`}
-            >
-              {s}
-            </div>
-            {s < 6 && (
+      {/* Step Navigation Bar */}
+      <div className="mb-8 bg-wood-50 rounded-lg p-4 border border-wood-200">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {stepLabels.map((s, idx) => (
+            <div key={s.num} className="flex items-center flex-1 min-w-[120px]">
               <div
-                className={`flex-1 h-1 mx-2 ${
-                  s < step ? 'bg-wood-300' : 'bg-wood-100'
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  s.num === step
+                    ? 'bg-accent text-white'
+                    : s.num < step
+                    ? 'bg-wood-200 text-wood-800'
+                    : 'bg-white text-wood-600'
                 }`}
-              />
-            )}
-          </div>
-        ))}
+              >
+                <span className="font-bold text-sm">{s.num}</span>
+                <span className="text-xs font-medium hidden sm:inline">{s.label}</span>
+              </div>
+              {idx < stepLabels.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 mx-1 hidden sm:block ${
+                    s.num < step ? 'bg-wood-300' : 'bg-wood-100'
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {error && (

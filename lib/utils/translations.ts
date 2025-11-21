@@ -162,6 +162,35 @@ export interface Translations {
   recordVoice: string;
   stopRecording: string;
   loading: string;
+  
+  // Home page improvements
+  howToUse: string;
+  step1Text: string;
+  step2Text: string;
+  step3Text: string;
+  aiWillGenerate: string;
+  aiWillGenerateTitle: string;
+  aiWillGenerateTags: string;
+  aiWillGenerateEmotion: string;
+  aiWillGenerateSummary: string;
+  recordingHint: string;
+  transcriptionComplete: string;
+  
+  // Cards page improvements
+  noCardsYet: string;
+  noCardsHint: string;
+  goToHome: string;
+  
+  // Create page improvements
+  createDescription: string;
+  
+  // Guide page improvements
+  quickStart: string;
+  quickStartDescription: string;
+  quickStartStep1: string;
+  quickStartStep2: string;
+  quickStartStep3: string;
+  goToPage: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -298,6 +327,27 @@ export const translations: Record<AppLanguage, Translations> = {
     recordVoice: '語音輸入',
     stopRecording: '停止錄音',
     loading: '載入中...',
+    howToUse: '如何使用 InsightBox？',
+    step1Text: '在這裡輸入或錄音你的想法',
+    step2Text: '按「儲存筆記」，AI 會自動幫你產生標題與標籤',
+    step3Text: '去「卡片筆記」裡查看、整理，再用每日雞湯/長文創作',
+    aiWillGenerate: '儲存後，AI 會為你自動產生：',
+    aiWillGenerateTitle: '標題',
+    aiWillGenerateTags: '標籤',
+    aiWillGenerateEmotion: '情緒',
+    aiWillGenerateSummary: '重點整理',
+    recordingHint: '正在錄音…說完後再按一次',
+    transcriptionComplete: '🎧 已由語音轉文字，你可以編輯後再存。',
+    noCardsYet: '目前還沒有任何卡片。',
+    noCardsHint: '👉 先到「首頁」輸入一則想法或錄一段語音，InsightBox 會自動幫你產生第一張卡片。',
+    goToHome: '前往首頁',
+    createDescription: '將你的筆記組合成 500–1000 字的長文，適合用在 FB、IG 長文或部落格。',
+    quickStart: '第一次使用，不用全部看完',
+    quickStartDescription: '先學會這三個功能就可以開始：',
+    quickStartStep1: '首頁：快速記錄文字/語音',
+    quickStartStep2: '卡片筆記：查看與整理卡片',
+    quickStartStep3: '每日雞湯：看 AI 幫你寫的每日訊息',
+    goToPage: '前往',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
@@ -566,6 +616,27 @@ export const translations: Record<AppLanguage, Translations> = {
     recordVoice: '音声入力',
     stopRecording: '録音停止',
     loading: '読み込み中...',
+    howToUse: 'InsightBox の使い方？',
+    step1Text: 'ここに考えを入力または録音',
+    step2Text: '「ノートを保存」をクリック、AI が自動的にタイトルとタグを生成',
+    step3Text: '「カード」で閲覧・整理し、デイリーインスピレーション/長文作成を使用',
+    aiWillGenerate: '保存後、AI が自動的に生成：',
+    aiWillGenerateTitle: 'タイトル',
+    aiWillGenerateTags: 'タグ',
+    aiWillGenerateEmotion: '感情',
+    aiWillGenerateSummary: '要約',
+    recordingHint: '録音中…終了したらもう一度クリック',
+    transcriptionComplete: '🎧 音声から文字に変換されました。保存前に編集できます。',
+    noCardsYet: 'まだカードがありません。',
+    noCardsHint: '👉 「ホーム」で考えを入力または音声を録音すると、InsightBox が自動的に最初のカードを作成します。',
+    goToHome: 'ホームへ',
+    createDescription: 'ノートを 500–1000 文字の記事に組み合わせ、FB、IG 投稿、ブログに最適。',
+    quickStart: '初めてですか？すべて読む必要はありません',
+    quickStartDescription: '始めるには、この3つの機能を学びましょう：',
+    quickStartStep1: 'ホーム：テキスト/音声の迅速なキャプチャ',
+    quickStartStep2: 'カード：カードの閲覧と整理',
+    quickStartStep3: 'デイリーインスピレーション：AI 生成の毎日のメッセージを表示',
+    goToPage: '移動',
   },
 };
 

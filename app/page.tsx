@@ -132,6 +132,27 @@ export default function Home() {
         </p>
       </div>
 
+      {/* 3-Step Guide */}
+      <div className="mb-8 bg-wood-50 p-6 rounded-lg border border-wood-200">
+        <h2 className="text-lg font-semibold text-wood-800 mb-4">
+          {t.howToUse}
+        </h2>
+        <ol className="space-y-2 text-wood-700">
+          <li className="flex items-start">
+            <span className="font-bold text-wood-800 mr-2">①</span>
+            <span>{t.step1Text}</span>
+          </li>
+          <li className="flex items-start">
+            <span className="font-bold text-wood-800 mr-2">②</span>
+            <span>{t.step2Text}</span>
+          </li>
+          <li className="flex items-start">
+            <span className="font-bold text-wood-800 mr-2">③</span>
+            <span>{t.step3Text}</span>
+          </li>
+        </ol>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-wood-700 mb-2">
@@ -192,26 +213,53 @@ export default function Home() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <SpeechToTextButton 
-            onTranscription={handleTranscription}
-            disabled={isSubmitting}
-          />
-          
-          <button
-            type="submit"
-            disabled={isSubmitting || !content.trim()}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center space-x-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>{t.processing}</span>
+        <div className="space-y-4">
+          {/* AI Generation Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-blue-800 mb-2">
+              {t.aiWillGenerate}
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm text-blue-700">
+              <span className="flex items-center">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                {t.aiWillGenerateTitle}
               </span>
-            ) : (
-              t.saveNote
-            )}
-          </button>
+              <span className="flex items-center">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                {t.aiWillGenerateTags}
+              </span>
+              <span className="flex items-center">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                {t.aiWillGenerateEmotion}
+              </span>
+              <span className="flex items-center">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                {t.aiWillGenerateSummary}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <SpeechToTextButton 
+              onTranscription={handleTranscription}
+              disabled={isSubmitting}
+            />
+            
+            <button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center space-x-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>{t.processing}</span>
+                </span>
+              ) : (
+                t.saveNote
+              )}
+            </button>
+          </div>
         </div>
       </form>
 

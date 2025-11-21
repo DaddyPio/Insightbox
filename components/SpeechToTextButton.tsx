@@ -12,6 +12,7 @@ interface SpeechToTextButtonProps {
 export default function SpeechToTextButton({ onTranscription, disabled }: SpeechToTextButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcriptionComplete, setTranscriptionComplete] = useState(false);
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -27,6 +28,7 @@ export default function SpeechToTextButton({ onTranscription, disabled }: Speech
   const startRecording = async () => {
     try {
       setError(null);
+      setTranscriptionComplete(false);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -77,6 +79,8 @@ export default function SpeechToTextButton({ onTranscription, disabled }: Speech
 
       const data = await response.json();
       onTranscription(data.text);
+      setTranscriptionComplete(true);
+      setTimeout(() => setTranscriptionComplete(false), 5000);
     } catch (err) {
       console.error('Error transcribing audio:', err);
       setError(language === 'zh-TW' ? '語音轉文字失敗，請重試。' : language === 'ja' ? '音声の文字変換に失敗しました。もう一度お試しください。' : 'Failed to transcribe audio. Please try again.');
@@ -84,7 +88,10 @@ export default function SpeechToTextButton({ onTranscription, disabled }: Speech
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center space-y-2">
+      {isRecording && (
+        <p className="text-sm text-wood-600">{t.recordingHint}</p>
+      )}
       <button
         onClick={isRecording ? stopRecording : startRecording}
         disabled={disabled}
@@ -112,10 +119,12 @@ export default function SpeechToTextButton({ onTranscription, disabled }: Speech
           </>
         )}
       </button>
+      {transcriptionComplete && (
+        <p className="text-sm text-green-600">{t.transcriptionComplete}</p>
+      )}
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600">{error}</p>
       )}
     </div>
   );
 }
-

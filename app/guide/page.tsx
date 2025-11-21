@@ -23,6 +23,7 @@ export default function GuidePage() {
       icon: '🚀',
       title: isChinese ? '1. 首頁：快速記錄' : isJapanese ? '1. ホーム：迅速な記録' : '1. Home: Quick Capture',
       subtitle: isChinese ? '一秒捕捉你的靈感' : isJapanese ? 'インスピレーションを1秒でキャプチャ' : 'Capture your inspiration in one second',
+      link: '/',
       content: [
         {
           type: 'text',
@@ -69,6 +70,7 @@ export default function GuidePage() {
       icon: '🗂️',
       title: isChinese ? '3. 卡片庫' : isJapanese ? '3. カードライブラリ' : '3. Card Library',
       subtitle: isChinese ? 'Zettelkasten 卡片盒筆記' : isJapanese ? 'Zettelkasten カードボックスノート' : 'Zettelkasten Card Box',
+      link: '/cards',
       content: [
         {
           type: 'text',
@@ -269,6 +271,39 @@ export default function GuidePage() {
         </p>
       </div>
 
+      {/* Quick Start Section */}
+      <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h2 className="text-xl font-bold text-blue-800 mb-2">
+          {t.quickStart}
+        </h2>
+        <p className="text-blue-700 mb-4">
+          {t.quickStartDescription}
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-blue-600 font-bold">1.</span>
+            <span className="text-blue-700">{t.quickStartStep1}</span>
+            <Link href="/" className="ml-auto text-blue-600 hover:text-blue-800 underline text-sm">
+              {t.goToPage} {isChinese ? '首頁' : isJapanese ? 'ホーム' : 'Home'}
+            </Link>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-blue-600 font-bold">2.</span>
+            <span className="text-blue-700">{t.quickStartStep2}</span>
+            <Link href="/cards" className="ml-auto text-blue-600 hover:text-blue-800 underline text-sm">
+              {t.goToPage} {isChinese ? '卡片筆記' : isJapanese ? 'カード' : 'Cards'}
+            </Link>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-blue-600 font-bold">3.</span>
+            <span className="text-blue-700">{t.quickStartStep3}</span>
+            <Link href="/daily" className="ml-auto text-blue-600 hover:text-blue-800 underline text-sm">
+              {t.goToPage} {isChinese ? '每日雞湯' : isJapanese ? 'デイリー' : 'Daily'}
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {cards.map((card, index) => (
           <div
@@ -306,6 +341,19 @@ export default function GuidePage() {
                 }
                 return null;
               })}
+              {(card as any).link && (
+                <div className="mt-4 pt-3 border-t border-wood-200">
+                  <Link 
+                    href={(card as any).link} 
+                    className="inline-flex items-center text-sm text-accent hover:text-accent-dark font-medium"
+                  >
+                    {t.goToPage} {(card.title.split('：')[0] || card.title.split(':')[0]).trim()}
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         ))}
