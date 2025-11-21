@@ -275,7 +275,7 @@ export async function generateWeeklyReview(
 }
 
 /**
- * Transcribe audio using Whisper API
+ * Transcribe audio using Whisper API and add punctuation
  */
 export async function transcribeAudio(audioFile: File | Blob): Promise<string> {
   if (!openai) {
@@ -286,11 +286,43 @@ export async function transcribeAudio(audioFile: File | Blob): Promise<string> {
     ? audioFile 
     : new File([audioFile], 'recording.webm', { type: audioFile.type || 'audio/webm' });
 
-  const response = await openai.audio.transcriptions.create({
+  // Step 1: Transcribe audio using Whisper
+  const transcription = await openai.audio.transcriptions.create({
     file: file,
     model: 'whisper-1',
+    language: 'zh', // Specify Chinese to improve accuracy
   });
 
-  return response.text;
+  const rawText = transcription.text.trim();
+  
+  // Step 2: Add punctuation using GPT if text is not empty
+  if (!rawText) {
+    return rawText;
+  }
+
+  try {
+    const punctuationResponse = await openai.chat.completions.create({
+      model: 'gpt-5.1',
+      messages: [
+        {
+          role: 'system',
+          content: '你是一個專業的文字編輯助手。你的任務是為語音轉文字後的內容添加合適的標點符號，讓文字更易讀。請保持原文的意思和語氣不變，只添加標點符號（句號、逗號、問號、驚嘆號等）。如果原文已經有標點符號，請檢查並優化它們。輸出時只返回添加了標點符號的文字，不要添加任何解釋或額外內容。'
+        },
+        {
+          role: 'user',
+          content: `請為以下語音轉文字內容添加合適的標點符號：\n\n${rawText}`
+        }
+      ],
+      temperature: 0.3, // Lower temperature for more consistent punctuation
+      max_completion_tokens: 500,
+    });
+
+    const punctuatedText = punctuationResponse.choices[0]?.message?.content?.trim() || rawText;
+    return punctuatedText;
+  } catch (error) {
+    // If punctuation addition fails, return the raw transcription
+    console.error('Error adding punctuation:', error);
+    return rawText;
+  }
 }
 
