@@ -100,26 +100,29 @@ export default function PWARegister() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Also show manual install option after checking conditions
-    const checkAndShowPrompt = () => {
-      if (isInstalled) return;
-      
-      // Wait for service worker to register, then show prompt
-      setTimeout(() => {
-        // If beforeinstallprompt didn't fire, still show manual install option
-        if (!deferredPrompt && swRegistered) {
-          console.log('ℹ️ Showing manual install option');
-          setShowInstallPrompt(true);
-        }
-      }, 3000);
-    };
-
-    checkAndShowPrompt();
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('languageChanged', onLang);
     };
+  }, []);
+
+  // Separate effect to show prompt after conditions are met
+  useEffect(() => {
+    if (isInstalled) return;
+    
+    // Wait for service worker to register, then show prompt
+    const timer = setTimeout(() => {
+      // If beforeinstallprompt didn't fire, still show manual install option
+      if (!deferredPrompt && swRegistered) {
+        console.log('ℹ️ Showing manual install option');
+        setShowInstallPrompt(true);
+      } else if (deferredPrompt) {
+        // If we have deferredPrompt, show it
+        setShowInstallPrompt(true);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [swRegistered, isInstalled, deferredPrompt]);
 
   const t = getTranslation(language);
