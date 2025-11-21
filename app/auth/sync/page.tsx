@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * When user logs in via email link in browser, this page in PWA
  * can receive the session and sync it
  */
-export default function AuthSyncPage() {
+function AuthSyncContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,6 +72,19 @@ export default function AuthSyncPage() {
       <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent rounded-full animate-spin mb-4"></div>
       <p className="text-wood-600">正在同步登入狀態...</p>
     </div>
+  );
+}
+
+export default function AuthSyncPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent rounded-full animate-spin mb-4"></div>
+        <p className="text-wood-600">正在載入...</p>
+      </div>
+    }>
+      <AuthSyncContent />
+    </Suspense>
   );
 }
 

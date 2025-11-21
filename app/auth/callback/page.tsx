@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 // Force dynamic rendering for this page (uses searchParams)
 export const dynamic = 'force-dynamic';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -282,6 +282,19 @@ export default function AuthCallbackPage() {
       <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent rounded-full animate-spin mb-4"></div>
       <p className="text-wood-600">正在完成登入...</p>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <div className="inline-block w-8 h-8 border-4 border-wood-300 border-t-accent rounded-full animate-spin mb-4"></div>
+        <p className="text-wood-600">正在載入...</p>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
 
