@@ -253,6 +253,7 @@ export default function LettersPage() {
   const childNames = Array.from(new Set(letters.map(l => l.child_name)));
 
   const isChinese = language === 'zh-TW';
+  const isJapanese = language === 'ja';
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
