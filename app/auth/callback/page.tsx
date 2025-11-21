@@ -191,6 +191,8 @@ export default function AuthCallbackPage() {
   // Show success message if session is set but we're in browser
   if (sessionSet && !isInPWA) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const appUrl = window.location.origin;
     
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
@@ -201,15 +203,63 @@ export default function AuthCallbackPage() {
               <p className="text-wood-600 mb-4">
                 您已在瀏覽器中完成登入。
               </p>
-              <p className="text-wood-600 mb-6">
-                請關閉此瀏覽器頁面，返回 InsightBox 應用繼續使用。
-              </p>
-              <p className="text-sm text-wood-500 mb-4">
-                提示：登入狀態已保存，當您返回應用時會自動同步。
-              </p>
-              <Link href="/" className="btn-primary block">
-                繼續使用（在瀏覽器中）
-              </Link>
+              {isIOS ? (
+                <>
+                  <p className="text-wood-600 mb-4">
+                    由於 iOS 的限制，登入狀態無法自動同步到已安裝的應用。
+                  </p>
+                  <p className="text-wood-600 mb-6">
+                    <strong>請按照以下步驟操作：</strong>
+                  </p>
+                  <div className="text-left bg-wood-50 p-4 rounded-lg mb-6">
+                    <ol className="list-decimal list-inside space-y-2 text-wood-700">
+                      <li>關閉此瀏覽器頁面</li>
+                      <li>返回 InsightBox 應用（從主畫面打開）</li>
+                      <li>在應用中重新輸入 email 並點擊登入連結</li>
+                      <li>這次請在應用中直接點擊 email 連結（不要從郵件 app 打開）</li>
+                    </ol>
+                  </div>
+                  <p className="text-sm text-wood-500 mb-4">
+                    或者，您也可以繼續在瀏覽器中使用。
+                  </p>
+                  <div className="space-y-2">
+                    <Link href="/" className="btn-primary block">
+                      繼續使用（在瀏覽器中）
+                    </Link>
+                    <button
+                      onClick={() => {
+                        // Try to open the app URL - might trigger PWA on iOS
+                        window.location.href = appUrl;
+                      }}
+                      className="btn-secondary block w-full"
+                    >
+                      嘗試打開應用
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-wood-600 mb-6">
+                    請關閉此瀏覽器頁面，返回 InsightBox 應用繼續使用。
+                  </p>
+                  <p className="text-sm text-wood-500 mb-4">
+                    提示：登入狀態已保存，當您返回應用時會自動同步。
+                  </p>
+                  <div className="space-y-2">
+                    <Link href="/" className="btn-primary block">
+                      繼續使用（在瀏覽器中）
+                    </Link>
+                    <button
+                      onClick={() => {
+                        window.location.href = appUrl;
+                      }}
+                      className="btn-secondary block w-full"
+                    >
+                      打開應用
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <>
