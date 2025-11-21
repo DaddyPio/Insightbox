@@ -6,7 +6,6 @@ import { getStoredLanguage } from '@/lib/utils/languageContext';
 import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 import { authFetch } from '@/lib/utils/authFetch';
 import LetterVoiceInput from '@/components/LetterVoiceInput';
-import SpeechToTextButton from '@/components/SpeechToTextButton';
 
 type Letter = {
   id: string;
@@ -362,9 +361,6 @@ export default function LettersPage() {
               className="input-field resize-none"
               disabled={isGenerating}
             />
-            <div className="mt-2">
-              <SpeechToTextButton onTranscription={handleTranscription} disabled={isGenerating} />
-            </div>
           </div>
 
           {/* Generate Button */}
