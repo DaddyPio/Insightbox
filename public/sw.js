@@ -5,13 +5,11 @@ const RUNTIME_CACHE = 'insightbox-runtime-v1';
 // Assets to cache on install
 const STATIC_ASSETS = [
   '/',
-  '/cards',
-  '/daily',
-  '/create',
-  '/guide',
-  '/letters',
-  '/favorites',
   '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-96.svg',
+  '/icon-192.svg',
+  '/icon-512.svg',
 ];
 
 // Install event - cache static assets

@@ -3,10 +3,12 @@
   "short_name": "InsightBox",
   "description": "A personal idea-capturing app with AI-powered insights",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#F5E6D3",
   "theme_color": "#8B6F47",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-96.svg",

@@ -163,6 +163,12 @@ export interface Translations {
   stopRecording: string;
   loading: string;
   
+  // PWA Install
+  installAppTitle: string;
+  installAppDescription: string;
+  install: string;
+  later: string;
+  
   // Home page improvements
   howToUse: string;
   step1Text: string;
@@ -327,6 +333,10 @@ export const translations: Record<AppLanguage, Translations> = {
     recordVoice: '語音輸入',
     stopRecording: '停止錄音',
     loading: '載入中...',
+    installAppTitle: '安裝 InsightBox',
+    installAppDescription: '將應用添加到主屏幕，獲得更好的體驗',
+    install: '安裝',
+    later: '稍後',
     howToUse: '如何使用 InsightBox？',
     step1Text: '在這裡輸入或錄音你的想法',
     step2Text: '按「儲存筆記」，AI 會自動幫你產生標題與標籤',
@@ -482,6 +492,10 @@ export const translations: Record<AppLanguage, Translations> = {
     recordVoice: 'Record Voice',
     stopRecording: 'Stop Recording',
     loading: 'Loading...',
+    installAppTitle: 'Install InsightBox',
+    installAppDescription: 'Add the app to your home screen for a better experience',
+    install: 'Install',
+    later: 'Later',
     howToUse: 'How to use InsightBox?',
     step1Text: 'Enter or record your thoughts here',
     step2Text: 'Click "Save Note", AI will automatically generate title and tags',
@@ -637,6 +651,10 @@ export const translations: Record<AppLanguage, Translations> = {
     recordVoice: '音声入力',
     stopRecording: '録音停止',
     loading: '読み込み中...',
+    installAppTitle: 'InsightBox をインストール',
+    installAppDescription: 'アプリをホーム画面に追加して、より良い体験を得ましょう',
+    install: 'インストール',
+    later: '後で',
     howToUse: 'InsightBox の使い方？',
     step1Text: 'ここに考えを入力または録音',
     step2Text: '「ノートを保存」をクリック、AI が自動的にタイトルとタグを生成',
