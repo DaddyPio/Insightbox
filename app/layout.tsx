@@ -19,10 +19,6 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: "InsightBox - Capture Your Ideas",
   description: "A personal idea-capturing app with AI-powered insights",
-  icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
-  },
 };
 
 export default function RootLayout({
