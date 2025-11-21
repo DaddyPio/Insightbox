@@ -161,19 +161,10 @@ export default function PWARegister() {
 
   // Separate effect to show prompt after conditions are met
   useEffect(() => {
+    // Check if already installed first
     if (isInstalled) {
       console.log('ℹ️ App already installed, not showing prompt');
       return;
-    }
-
-    // Check if prompt was dismissed
-    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
-    if (dismissedTime) {
-      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
-      if (hoursSinceDismissal < 24) {
-        console.log('ℹ️ Install prompt was dismissed recently, not showing');
-        return;
-      }
     }
 
     // Detect if mobile device
@@ -182,26 +173,54 @@ export default function PWARegister() {
     const delay = isMobile ? 5000 : 3000;
     
     console.log(`ℹ️ Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, will show prompt after ${delay}ms`);
+
+    // Check if prompt was dismissed (but still show after delay for testing)
+    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
+    let wasDismissed = false;
+    if (dismissedTime) {
+      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
+      if (hoursSinceDismissal < 24) {
+        console.log('ℹ️ Install prompt was dismissed recently, but will still show after delay');
+        wasDismissed = true;
+      } else {
+        localStorage.removeItem('pwa-install-dismissed');
+      }
+    }
     
     // Wait for service worker to register, then show prompt
-    const timer = setTimeout(() => {
-      console.log('ℹ️ Checking install prompt conditions:', {
+    // Use multiple timers to ensure it shows
+    const timer1 = setTimeout(() => {
+      console.log('ℹ️ Timer 1: Checking install prompt conditions:', {
         swRegistered,
         hasDeferredPrompt: !!deferredPrompt,
         isInstalled,
         isMobile,
-        userAgent: navigator.userAgent.substring(0, 100) // Truncate for readability
+        wasDismissed,
+        userAgent: navigator.userAgent.substring(0, 100)
       });
       
       // Always show install option after delay (for manual install)
       // This ensures users can install even if beforeinstallprompt doesn't fire
       // Especially important for Chrome on mobile
-      console.log('ℹ️ Showing install prompt (will show for all browsers)');
-      setShowInstallPrompt(true);
+      if (!isInstalled) {
+        console.log('✅ Timer 1: Showing install prompt');
+        setShowInstallPrompt(true);
+      }
     }, delay);
 
-    return () => clearTimeout(timer);
-  }, [swRegistered, isInstalled, deferredPrompt]);
+    // Backup timer in case first one doesn't work
+    const timer2 = setTimeout(() => {
+      if (!isInstalled && !showInstallPrompt) {
+        console.log('✅ Timer 2 (backup): Force showing install prompt');
+        setShowInstallPrompt(true);
+      }
+    }, delay + 2000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [swRegistered, isInstalled, deferredPrompt, showInstallPrompt]);
 
   const t = getTranslation(language);
 
@@ -247,13 +266,30 @@ export default function PWARegister() {
     alert(instructions);
   };
 
+  // Fallback: Force show on mobile after 8 seconds if not shown yet
+  useEffect(() => {
+    if (!showInstallPrompt && !isInstalled && !forceShow) {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        const timer = setTimeout(() => {
+          if (!showInstallPrompt && !isInstalled) {
+            console.log('✅ Force showing install prompt (mobile fallback after 8s)');
+            setForceShow(true);
+          }
+        }, 8000);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showInstallPrompt, isInstalled, forceShow]);
+
   // Don't show if already installed
   if (isInstalled) {
     return null;
   }
 
-  // Show prompt after a delay to ensure everything is ready
-  if (!showInstallPrompt) {
+  // Show prompt if either showInstallPrompt or forceShow is true
+  if (!showInstallPrompt && !forceShow) {
     return null;
   }
 
