@@ -209,20 +209,20 @@ export default function DailyPage() {
             className="btn-secondary"
             disabled={loading}
           >
-            Refresh
+            {t.refresh}
           </button>
           <button
             onClick={generateToday}
             className="btn-primary disabled:opacity-50"
             disabled={generating}
           >
-            {generating ? 'Generating...' : 'Generate Today’s Inspiration'}
+            {generating ? t.generatingInspiration : t.generateTodaysInspiration}
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center text-wood-600">Loading...</div>
+        <div className="text-center text-wood-600">{t.loading}</div>
       ) : inspiration ? (
         <div className="card">
           <div className="mb-4 flex items-center justify-between">

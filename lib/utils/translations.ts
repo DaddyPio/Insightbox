@@ -151,6 +151,17 @@ export interface Translations {
   letterSaved: string;
   letterDeleted: string;
   letterUpdated: string;
+  
+  // Buttons
+  refresh: string;
+  generateTodaysInspiration: string;
+  generatingInspiration: string;
+  holdToSpeak: string;
+  recording: string;
+  releaseToStop: string;
+  recordVoice: string;
+  stopRecording: string;
+  loading: string;
 }
 
 export const translations: Record<AppLanguage, Translations> = {
@@ -278,6 +289,15 @@ export const translations: Record<AppLanguage, Translations> = {
     letterSaved: '信件已儲存',
     letterDeleted: '信件已刪除',
     letterUpdated: '信件已更新',
+    refresh: '重新載入',
+    generateTodaysInspiration: '生成今日靈感',
+    generatingInspiration: '生成中...',
+    holdToSpeak: '按住開始說話',
+    recording: '錄音中...',
+    releaseToStop: '放開按鈕結束錄音',
+    recordVoice: '語音輸入',
+    stopRecording: '停止錄音',
+    loading: '載入中...',
   },
   'en': {
     shareImagePreview: 'Share Image Preview',
