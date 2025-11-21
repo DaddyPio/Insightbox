@@ -154,8 +154,47 @@ export default function GuidePage() {
       ],
     },
     {
+      icon: '💌',
+      title: isChinese ? '7. 寫給孩子的信' : isJapanese ? '7. 子供への手紙' : '7. Letters to Kids',
+      subtitle: isChinese ? '用語音或文字，讓 AI 幫你寫出溫暖的信' : isJapanese ? '音声やテキストで、AI が温かい手紙を書く' : 'Use voice or text, let AI write warm letters',
+      content: [
+        {
+          type: 'text',
+          text: isChinese 
+            ? '這裡是專門寫給孩子們的信。你可以用說的，讓 AI 幫你整理成一封好讀、溫暖的文字。未來可以匯出、收藏，甚至在孩子長大時送給他們。'
+            : isJapanese
+            ? 'これは子供たちへの手紙専用のスペースです。話した内容をAIが整理して、温かく読みやすい手紙にします。将来的にはエクスポート、保存、そして子供が成長したときに渡すこともできます。'
+            : 'This is a dedicated space for writing letters to your children. You can speak your thoughts, and AI will help organize them into warm, readable letters. In the future, you can export, save, and even give them to your children when they grow up.',
+        },
+        {
+          type: 'text',
+          text: isChinese ? '使用流程：' : isJapanese ? '使用プロセス：' : 'Usage Process:',
+        },
+        {
+          type: 'list',
+          items: isChinese
+            ? ['選擇寫給哪個孩子（大兒子、小兒子、全部孩子，或自訂名稱）', '選擇語氣風格（溫暖鼓勵、坦誠對話、故事式分享、簡短提醒）', '按住錄音按鈕說話，或直接在文字框中輸入內容', '語音會自動轉換成文字，你可以稍作編輯', '點擊「生成寫給孩子的信」，AI 會將你的話整理成溫暖、適合孩子閱讀的信件', '可以編輯 AI 生成的信件內容，然後儲存到信件庫', '在「過去的信件」中瀏覽、編輯、收藏或刪除已儲存的信件']
+            : isJapanese
+            ? ['どの子供に宛てるか選択（長男、次男、すべての子供、またはカスタム名）', 'トーンを選択（温かく励ます、正直な対話、ストーリーテリング、短いリマインダー）', '録音ボタンを押して話すか、テキストボックスに直接入力', '音声が自動的にテキストに変換され、編集可能', '「手紙を生成」をクリックすると、AIがあなたの言葉を温かく、子供が読みやすい手紙に整理', 'AI生成の手紙内容を編集して、手紙ライブラリに保存可能', '「過去の手紙」で保存された手紙を閲覧、編集、お気に入り登録、削除']
+            : ['Select which child to write to (oldest son, youngest son, all children, or custom name)', 'Select tone style (warm & encouraging, honest talk, storytelling, short reminder)', 'Hold the record button and speak, or type directly in the text box', 'Voice is automatically converted to text, which you can edit', 'Click "Generate Letter" and AI will organize your words into a warm, child-friendly letter', 'You can edit the AI-generated letter content and save it to the letter library', 'Browse, edit, favorite, or delete saved letters in "Past Letters"'],
+        },
+        {
+          type: 'text',
+          text: isChinese ? 'AI 處理邏輯：' : isJapanese ? 'AI処理ロジック：' : 'AI Processing Logic:',
+        },
+        {
+          type: 'list',
+          items: isChinese
+            ? ['分析原始語音轉文字的內容，提取核心訊息和情感（關愛、擔憂、驕傲、鼓勵、道歉等）', '用簡單、清晰的語言重新組織內容，適合 6-15 歲孩子閱讀', '保持溫暖、誠實的風格，避免過於「心靈雞湯」式的表達', '長度約 150-400 個中文字，足夠像一封真正的信，但不會太長']
+            : isJapanese
+            ? ['元の音声テキストの内容を分析し、核心メッセージと感情を抽出（愛情、心配、誇り、励まし、謝罪など）', '6-15歳の子供が読めるよう、シンプルで明確な言語で内容を再構成', '温かく誠実なスタイルを保ち、過度に「心の栄養」的な表現を避ける', '約150-400文字の日本語、本物の手紙のように十分だが、長すぎない']
+            : ['Analyze the raw speech-to-text content, extract core messages and emotions (care, worry, pride, encouragement, apology, etc.)', 'Reorganize content in simple, clear language suitable for children aged 6-15', 'Maintain a warm, honest style, avoiding overly "chicken-soup-like" expressions', 'Length about 150-400 Chinese characters, enough to feel like a real letter but not too long'],
+        },
+      ],
+    },
+    {
       icon: '🔐',
-      title: isChinese ? '7. 資料安全' : isJapanese ? '7. データセキュリティ' : '7. Data Security',
+      title: isChinese ? '8. 資料安全' : isJapanese ? '8. データセキュリティ' : '8. Data Security',
       subtitle: isChinese ? '僅自己可見' : isJapanese ? '自分だけが見られる' : 'Private to you',
       content: [
         {
@@ -170,7 +209,7 @@ export default function GuidePage() {
     },
     {
       icon: '🎯',
-      title: isChinese ? '最適合這些人' : isJapanese ? '最適なユーザー' : 'Perfect For',
+      title: isChinese ? '9. 最適合這些人' : isJapanese ? '9. 最適なユーザー' : '9. Perfect For',
       subtitle: isChinese ? '誰適合使用 InsightBox' : isJapanese ? 'InsightBox に適した人' : 'Who should use InsightBox',
       content: [
         {
@@ -185,7 +224,7 @@ export default function GuidePage() {
     },
     {
       icon: '❤️',
-      title: isChinese ? '你會得到什麼' : isJapanese ? '得られるもの' : 'What You\'ll Gain',
+      title: isChinese ? '10. 你會得到什麼' : isJapanese ? '10. 得られるもの' : '10. What You\'ll Gain',
       subtitle: isChinese ? '使用 InsightBox 的價值' : isJapanese ? 'InsightBox を使用する価値' : 'The value of using InsightBox',
       content: [
         {

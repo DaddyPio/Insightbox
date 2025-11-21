@@ -118,16 +118,6 @@ export default function Navigation() {
                 {t.navCreate}
               </Link>
               <Link 
-                href="/guide" 
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  pathname === '/guide' 
-                    ? 'text-wood-900 bg-wood-200' 
-                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
-                }`}
-              >
-                {t.guide}
-              </Link>
-              <Link 
                 href="/letters" 
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/letters' 
@@ -136,6 +126,16 @@ export default function Navigation() {
                 }`}
               >
                 {t.navLetters}
+              </Link>
+              <Link 
+                href="/guide" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/guide' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.guide}
               </Link>
             </div>
           </div>
@@ -248,17 +248,6 @@ export default function Navigation() {
                 {t.navCreate}
               </Link>
               <Link 
-                href="/guide" 
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  pathname === '/guide' 
-                    ? 'text-wood-900 bg-wood-200' 
-                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
-                }`}
-              >
-                {t.guide}
-              </Link>
-              <Link 
                 href="/letters" 
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
@@ -268,6 +257,17 @@ export default function Navigation() {
                 }`}
               >
                 {t.navLetters}
+              </Link>
+              <Link 
+                href="/guide" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname === '/guide' 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                {t.guide}
               </Link>
 
               <UserInfo mobile language={language} onMobileMenuClose={() => setMobileMenuOpen(false)} />
