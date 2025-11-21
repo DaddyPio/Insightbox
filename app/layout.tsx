@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
+import AuthSyncListener from "@/components/AuthSyncListener";
 
 const inter = Inter({ subsets: ["latin"] });
 const notoSansTC = Noto_Sans_TC({ 
@@ -63,6 +64,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${notoSansTC.variable} ${notoSansJP.variable} flex flex-col min-h-screen`}>
         <PWARegister />
+        <AuthSyncListener />
         <Navigation />
         <main className="flex-1">
           {children}

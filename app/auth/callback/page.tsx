@@ -53,6 +53,7 @@ export default function AuthCallbackPage() {
             setSessionSet(true);
             
             // Try to broadcast session to PWA using BroadcastChannel
+            // This allows PWA to receive the session if it's open
             try {
               const channel = new BroadcastChannel('insightbox-auth');
               channel.postMessage({
@@ -61,10 +62,27 @@ export default function AuthCallbackPage() {
                   access_token: accessToken,
                   refresh_token: refreshToken,
                 },
+                timestamp: Date.now(),
               });
-              channel.close();
+              
+              // Keep channel open briefly to ensure message is sent
+              setTimeout(() => {
+                channel.close();
+              }, 1000);
             } catch (e) {
               console.log('BroadcastChannel not supported:', e);
+            }
+
+            // Also try to store in a way that PWA can access
+            // Note: localStorage is separate between browser and PWA on iOS
+            // But we can try to use sessionStorage or other methods
+            try {
+              // Store a flag that PWA can check
+              sessionStorage.setItem('insightbox-auth-pending', 'true');
+              sessionStorage.setItem('insightbox-auth-token', accessToken);
+              sessionStorage.setItem('insightbox-auth-refresh', refreshToken);
+            } catch (e) {
+              console.log('Failed to store auth in sessionStorage:', e);
             }
 
             // If we're in PWA, just redirect
