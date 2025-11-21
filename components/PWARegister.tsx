@@ -7,6 +7,7 @@ import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 export default function PWARegister() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [forceShow, setForceShow] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [swRegistered, setSwRegistered] = useState(false);
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
@@ -174,17 +175,20 @@ export default function PWARegister() {
     
     console.log(`ℹ️ Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, will show prompt after ${delay}ms`);
 
-    // Check if prompt was dismissed (but still show after delay for testing)
+    // On mobile, ignore dismissal to ensure prompt shows
+    // Check if prompt was dismissed (but ignore for mobile)
     const dismissedTime = localStorage.getItem('pwa-install-dismissed');
     let wasDismissed = false;
-    if (dismissedTime) {
+    if (dismissedTime && !isMobile) {
       const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
       if (hoursSinceDismissal < 24) {
-        console.log('ℹ️ Install prompt was dismissed recently, but will still show after delay');
-        wasDismissed = true;
+        console.log('ℹ️ Install prompt was dismissed recently, not showing (desktop only)');
+        return;
       } else {
         localStorage.removeItem('pwa-install-dismissed');
       }
+    } else if (dismissedTime && isMobile) {
+      console.log('ℹ️ Install prompt was dismissed, but showing anyway on mobile');
     }
     
     // Wait for service worker to register, then show prompt
