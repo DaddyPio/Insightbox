@@ -45,14 +45,27 @@ export default function AuthButton({ submitLabel = '登入連結' }: { submitLab
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
       const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
 
-      const { error } = await supabaseBrowser.auth.signInWithOtp({
+      // Check if we're in PWA
+      const isStandalone = typeof window !== 'undefined' && (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true
+      );
+
+      const { data, error } = await supabaseBrowser.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: redirectTo,
         },
       });
+      
       if (error) throw error;
-      setInfo('登入連結已寄出，請到信箱點擊連結完成登入');
+      
+      // If in PWA, provide additional instructions
+      if (isStandalone) {
+        setInfo('登入連結已寄出！重要：請在 InsightBox 應用中打開 email 連結（不要從郵件 app 直接打開）。如果連結在瀏覽器中打開，請複製連結並在應用中打開。');
+      } else {
+        setInfo('登入連結已寄出，請到信箱點擊連結完成登入');
+      }
       setEmail('');
     } catch (err: any) {
       setError(err?.message || 'Failed to send login link');
