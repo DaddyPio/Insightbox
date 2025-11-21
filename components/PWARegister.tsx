@@ -20,6 +20,18 @@ export default function PWARegister() {
     const onLang = () => setLanguage(getStoredLanguage() || 'en');
     window.addEventListener('languageChanged', onLang);
 
+    // Check if user dismissed the prompt recently (within 24 hours)
+    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
+    if (dismissedTime) {
+      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
+      if (hoursSinceDismissal < 24) {
+        console.log('ℹ️ Install prompt was dismissed recently, not showing');
+        return;
+      } else {
+        localStorage.removeItem('pwa-install-dismissed');
+      }
+    }
+
     // Check if app is already installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -27,7 +39,7 @@ export default function PWARegister() {
       const installed = isStandalone || isIOSStandalone;
       setIsInstalled(installed);
       if (installed) {
-        console.log('App is already installed');
+        console.log('✅ App is already installed');
         return;
       }
     };
@@ -108,18 +120,23 @@ export default function PWARegister() {
 
   // Separate effect to show prompt after conditions are met
   useEffect(() => {
-    if (isInstalled) return;
+    if (isInstalled) {
+      console.log('ℹ️ App already installed, not showing prompt');
+      return;
+    }
     
     // Wait for service worker to register, then show prompt
     const timer = setTimeout(() => {
-      // If beforeinstallprompt didn't fire, still show manual install option
-      if (!deferredPrompt && swRegistered) {
-        console.log('ℹ️ Showing manual install option');
-        setShowInstallPrompt(true);
-      } else if (deferredPrompt) {
-        // If we have deferredPrompt, show it
-        setShowInstallPrompt(true);
-      }
+      console.log('ℹ️ Checking install prompt conditions:', {
+        swRegistered,
+        hasDeferredPrompt: !!deferredPrompt,
+        isInstalled
+      });
+      
+      // Always show install option after delay (for manual install)
+      // This ensures users can install even if beforeinstallprompt doesn't fire
+      console.log('ℹ️ Showing install prompt');
+      setShowInstallPrompt(true);
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -170,30 +187,38 @@ export default function PWARegister() {
   };
 
   // Don't show if already installed
-  if (isInstalled) return null;
+  if (isInstalled) {
+    return null;
+  }
 
   // Show prompt after a delay to ensure everything is ready
-  if (!showInstallPrompt) return null;
+  if (!showInstallPrompt) {
+    return null;
+  }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-      <div className="bg-wood-800 text-white p-4 rounded-lg shadow-lg flex items-center justify-between gap-4">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-slide-up">
+      <div className="bg-wood-800 text-white p-4 rounded-lg shadow-xl border-2 border-wood-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex-1">
-          <p className="font-semibold text-sm">{t.installAppTitle}</p>
-          <p className="text-xs text-wood-200 mt-1">
+          <p className="font-semibold text-base mb-1">{t.installAppTitle}</p>
+          <p className="text-sm text-wood-200">
             {t.installAppDescription}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <button
-            onClick={() => setShowInstallPrompt(false)}
-            className="px-3 py-1 text-sm text-wood-200 hover:text-white"
+            onClick={() => {
+              setShowInstallPrompt(false);
+              // Store dismissal in localStorage to not show again for 24 hours
+              localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+            }}
+            className="px-4 py-2 text-sm text-wood-200 hover:text-white border border-wood-600 rounded transition-colors"
           >
             {t.later}
           </button>
           <button
             onClick={handleInstallClick}
-            className="px-4 py-1 bg-accent hover:bg-accent-dark text-white rounded text-sm font-medium"
+            className="px-6 py-2 bg-accent hover:bg-accent-dark text-white rounded text-sm font-semibold shadow-lg transition-all hover:scale-105 flex-1 sm:flex-initial"
           >
             {t.install}
           </button>
