@@ -41,9 +41,9 @@ export default function AuthButton({ submitLabel = '登入連結' }: { submitLab
       
       // Use auth callback page for better PWA support
       // The callback page will handle redirecting back to the app
-      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(
-        typeof window !== 'undefined' ? window.location.pathname : '/'
-      )}`;
+      // Include a sync page parameter for PWA to listen
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
 
       const { error } = await supabaseBrowser.auth.signInWithOtp({
         email,
