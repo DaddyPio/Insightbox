@@ -34,6 +34,7 @@ export default function SharePage() {
     if (params.id) {
       fetchNote(params.id as string);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const fetchNote = async (id: string) => {
