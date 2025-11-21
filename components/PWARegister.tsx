@@ -7,6 +7,8 @@ import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 export default function PWARegister() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [swRegistered, setSwRegistered] = useState(false);
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
 
   useEffect(() => {
@@ -18,15 +20,41 @@ export default function PWARegister() {
     const onLang = () => setLanguage(getStoredLanguage() || 'en');
     window.addEventListener('languageChanged', onLang);
 
+    // Check if app is already installed
+    const checkInstalled = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isIOSStandalone = (window.navigator as any).standalone === true;
+      const installed = isStandalone || isIOSStandalone;
+      setIsInstalled(installed);
+      if (installed) {
+        console.log('App is already installed');
+        return;
+      }
+    };
+
+    checkInstalled();
+
     // Register service worker immediately
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       // Register service worker
       const registerSW = async () => {
         try {
+          // Unregister any existing service workers first
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            if (registration.scope !== window.location.origin + '/') {
+              await registration.unregister();
+            }
+          }
+
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
           });
-          console.log('Service Worker registered:', registration.scope);
+          console.log('✅ Service Worker registered:', registration.scope);
+          setSwRegistered(true);
+
+          // Wait a bit for service worker to be ready
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
           // Check for updates
           registration.addEventListener('updatefound', () => {
@@ -34,23 +62,19 @@ export default function PWARegister() {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New service worker available
                   console.log('New service worker available');
                 }
               });
             }
           });
         } catch (error) {
-          console.log('Service Worker registration failed:', error);
+          console.error('❌ Service Worker registration failed:', error);
+          setSwRegistered(false);
         }
       };
 
-      // Register immediately if page is already loaded, otherwise wait for load
-      if (document.readyState === 'complete') {
-        registerSW();
-      } else {
-        window.addEventListener('load', registerSW);
-      }
+      // Register immediately
+      registerSW();
 
       // Handle service worker updates
       let refreshing = false;
@@ -59,50 +83,93 @@ export default function PWARegister() {
         refreshing = true;
         window.location.reload();
       });
+    } else {
+      console.log('⚠️ Service Worker not supported');
     }
 
     // Listen for beforeinstallprompt event (Chrome/Edge)
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('✅ beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      // Show prompt after a short delay to ensure page is loaded
+      setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('App is already installed');
-    }
+    // Also show manual install option after checking conditions
+    const checkAndShowPrompt = () => {
+      if (isInstalled) return;
+      
+      // Wait for service worker to register, then show prompt
+      setTimeout(() => {
+        // If beforeinstallprompt didn't fire, still show manual install option
+        if (!deferredPrompt && swRegistered) {
+          console.log('ℹ️ Showing manual install option');
+          setShowInstallPrompt(true);
+        }
+      }, 3000);
+    };
+
+    checkAndShowPrompt();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('languageChanged', onLang);
     };
-  }, []);
+  }, [swRegistered, isInstalled, deferredPrompt]);
 
   const t = getTranslation(language);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // Fallback: show manual installation instructions
-      const instructions = 
-        language === 'zh-TW' 
-          ? '請使用瀏覽器選單中的「加入主畫面」功能來安裝此應用。'
-          : language === 'ja'
-          ? 'ブラウザメニューの「ホーム画面に追加」機能を使用してアプリをインストールしてください。'
-          : 'Please use the browser menu to "Add to Home Screen" to install this app.';
-      alert(instructions);
-      return;
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to install prompt: ${outcome}`);
+        setDeferredPrompt(null);
+        setShowInstallPrompt(false);
+      } catch (error) {
+        console.error('Error showing install prompt:', error);
+        showManualInstructions();
+      }
+    } else {
+      showManualInstructions();
     }
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install prompt: ${outcome}`);
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
   };
 
+  const showManualInstructions = () => {
+    const t = getTranslation(language);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    let instructions = '';
+    if (isIOS) {
+      instructions = language === 'zh-TW'
+        ? 'iOS 安裝步驟：\n1. 點擊瀏覽器底部的「分享」按鈕\n2. 向下滾動找到「加入主畫面」\n3. 點擊「加入主畫面」完成安裝'
+        : language === 'ja'
+        ? 'iOS インストール手順：\n1. ブラウザ下部の「共有」ボタンをタップ\n2. 下にスクロールして「ホーム画面に追加」を見つける\n3. 「ホーム画面に追加」をタップしてインストールを完了'
+        : 'iOS Installation:\n1. Tap the "Share" button at the bottom\n2. Scroll down to find "Add to Home Screen"\n3. Tap "Add to Home Screen" to complete';
+    } else if (isAndroid) {
+      instructions = language === 'zh-TW'
+        ? 'Android 安裝步驟：\n1. 點擊瀏覽器右上角的「選單」（三個點）\n2. 選擇「加入主畫面」或「安裝應用」\n3. 確認安裝'
+        : language === 'ja'
+        ? 'Android インストール手順：\n1. ブラウザ右上の「メニュー」（3つの点）をタップ\n2. 「ホーム画面に追加」または「アプリをインストール」を選択\n3. インストールを確認'
+        : 'Android Installation:\n1. Tap the menu (three dots) in the top right\n2. Select "Add to Home Screen" or "Install App"\n3. Confirm installation';
+    } else {
+      instructions = t.installAppDescription;
+    }
+    
+    alert(instructions);
+  };
+
+  // Don't show if already installed
+  if (isInstalled) return null;
+
+  // Show prompt after a delay to ensure everything is ready
   if (!showInstallPrompt) return null;
 
   return (
