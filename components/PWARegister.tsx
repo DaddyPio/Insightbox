@@ -20,18 +20,6 @@ export default function PWARegister() {
     const onLang = () => setLanguage(getStoredLanguage() || 'en');
     window.addEventListener('languageChanged', onLang);
 
-    // Check if user dismissed the prompt recently (within 24 hours)
-    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
-    if (dismissedTime) {
-      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
-      if (hoursSinceDismissal < 24) {
-        console.log('ℹ️ Install prompt was dismissed recently, not showing');
-        return;
-      } else {
-        localStorage.removeItem('pwa-install-dismissed');
-      }
-    }
-
     // Check if app is already installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -40,11 +28,31 @@ export default function PWARegister() {
       setIsInstalled(installed);
       if (installed) {
         console.log('✅ App is already installed');
-        return;
+        return true;
       }
+      return false;
     };
 
-    checkInstalled();
+    const alreadyInstalled = checkInstalled();
+    if (alreadyInstalled) {
+      return () => {
+        window.removeEventListener('languageChanged', onLang);
+      };
+    }
+
+    // Check if user dismissed the prompt recently (within 24 hours)
+    // But still register service worker and listen for events
+    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
+    let shouldShowPrompt = true;
+    if (dismissedTime) {
+      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
+      if (hoursSinceDismissal < 24) {
+        console.log('ℹ️ Install prompt was dismissed recently, will not show automatically');
+        shouldShowPrompt = false;
+      } else {
+        localStorage.removeItem('pwa-install-dismissed');
+      }
+    }
 
     // Register service worker immediately
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -101,20 +109,32 @@ export default function PWARegister() {
 
     // Listen for beforeinstallprompt event (Chrome/Edge)
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('✅ beforeinstallprompt event fired');
+      console.log('✅ beforeinstallprompt event fired in Chrome');
       e.preventDefault();
       setDeferredPrompt(e);
       // Show prompt after a short delay to ensure page is loaded
-      setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 2000);
+      if (shouldShowPrompt) {
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 2000);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Also check periodically if beforeinstallprompt should have fired
+    // Sometimes Chrome delays this event
+    const checkInterval = setInterval(() => {
+      if (!deferredPrompt && !isInstalled && shouldShowPrompt) {
+        // Check if we can detect installability
+        console.log('ℹ️ Checking PWA installability...');
+      }
+    }, 5000);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('languageChanged', onLang);
+      clearInterval(checkInterval);
     };
   }, []);
 
@@ -124,18 +144,30 @@ export default function PWARegister() {
       console.log('ℹ️ App already installed, not showing prompt');
       return;
     }
+
+    // Check if prompt was dismissed
+    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
+    if (dismissedTime) {
+      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
+      if (hoursSinceDismissal < 24) {
+        console.log('ℹ️ Install prompt was dismissed recently, not showing');
+        return;
+      }
+    }
     
     // Wait for service worker to register, then show prompt
     const timer = setTimeout(() => {
       console.log('ℹ️ Checking install prompt conditions:', {
         swRegistered,
         hasDeferredPrompt: !!deferredPrompt,
-        isInstalled
+        isInstalled,
+        userAgent: navigator.userAgent
       });
       
       // Always show install option after delay (for manual install)
       // This ensures users can install even if beforeinstallprompt doesn't fire
-      console.log('ℹ️ Showing install prompt');
+      // Especially important for Chrome on mobile
+      console.log('ℹ️ Showing install prompt (will show for all browsers)');
       setShowInstallPrompt(true);
     }, 3000);
 
