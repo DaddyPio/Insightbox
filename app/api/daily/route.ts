@@ -45,6 +45,7 @@ CRITICAL RULES:
   }
 - The language of the output should be Chinese (Traditional) by default, but you can also use English or Japanese if appropriate.
 - "song" is MANDATORY - you must ALWAYS provide a REAL song with REAL title and artist. Never use "Unknown Song" or "Unknown Artist".
+- IMPORTANT: Each generation must recommend a DIFFERENT song. Avoid repeating songs. Select from diverse genres, artists, and eras to ensure variety.
 `.trim();
 
 function getTodayISODate(): string {
@@ -140,17 +141,27 @@ Generate today's daily inspiration following these steps:
    - Feel like timeless wisdom that could have come from that mentor
 
 5. Provide a REAL song recommendation that connects to the inspiration.
+   - IMPORTANT: Each time you generate, choose a DIFFERENT song. Avoid repeating the same songs.
+   - Select from diverse genres, eras, and artists (pop, rock, classical, inspirational, folk, etc.)
+   - Choose songs from different decades and cultures when possible
+   - The song should genuinely connect to the inspiration's theme, but variety is key
+   - Examples of diverse songs you could recommend: "What a Wonderful World" by Louis Armstrong, "Imagine" by John Lennon, "Brave" by Sara Bareilles, "Rise Up" by Andra Day, "Ain't No Mountain High Enough" by Marvin Gaye, "Don't Stop Believin'" by Journey, "I Will Survive" by Gloria Gaynor, "Eye of the Tiger" by Survivor, "Happy" by Pharrell Williams, "Lean On Me" by Bill Withers, etc.
+   - DO NOT repeatedly use the same song. Each generation should be unique.
 
 Output JSON only (no extra text). Use Traditional Chinese for the message unless specified otherwise.
 `.trim();
+
+    // Add randomness to prompt to encourage different song selections
+    const randomSeed = Math.random().toString(36).substring(7);
+    const enhancedPrompt = `${userPrompt}\n\nNote: This is generation #${randomSeed}. Please ensure the song recommendation is unique and different from previous recommendations.`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-5.1',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
+        { role: 'user', content: enhancedPrompt },
       ],
-      temperature: 0.9, // Increased for more creativity and variation
+      temperature: 1.0, // Maximum temperature for maximum variation
       max_completion_tokens: 500, // Increased to allow for theme analysis and song details
     });
 
