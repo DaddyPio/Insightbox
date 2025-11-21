@@ -109,9 +109,10 @@ export default function LetterVoiceInput({ onTranscription, disabled }: LetterVo
       <button
         onMouseDown={startRecording}
         onMouseUp={stopRecording}
+        onMouseLeave={stopRecording}
         onTouchStart={startRecording}
         onTouchEnd={stopRecording}
-        disabled={disabled || isRecording}
+        disabled={disabled}
         className={`
           ${isRecording 
             ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
@@ -121,6 +122,7 @@ export default function LetterVoiceInput({ onTranscription, disabled }: LetterVo
           disabled:opacity-50 disabled:cursor-not-allowed
           flex items-center space-x-3 text-lg
           shadow-lg
+          ${isRecording ? 'cursor-pointer' : ''}
         `}
       >
         {isRecording ? (
