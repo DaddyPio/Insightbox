@@ -71,10 +71,31 @@ export default function PWARegister() {
             scope: '/',
           });
           console.log('✅ Service Worker registered:', registration.scope);
-          setSwRegistered(true);
-
-          // Wait a bit for service worker to be ready
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Wait for service worker to be ready (longer on mobile)
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          const waitTime = isMobile ? 2000 : 1000;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          
+          // Check if service worker is actually active
+          if (registration.active) {
+            console.log('✅ Service Worker is active');
+            setSwRegistered(true);
+          } else if (registration.installing) {
+            console.log('⏳ Service Worker is installing...');
+            registration.installing.addEventListener('statechange', () => {
+              if (registration.installing?.state === 'activated') {
+                console.log('✅ Service Worker activated');
+                setSwRegistered(true);
+              }
+            });
+          } else if (registration.waiting) {
+            console.log('✅ Service Worker is waiting (already installed)');
+            setSwRegistered(true);
+          } else {
+            console.log('⚠️ Service Worker registration state unclear, assuming registered');
+            setSwRegistered(true);
+          }
 
           // Check for updates
           registration.addEventListener('updatefound', () => {
@@ -154,6 +175,13 @@ export default function PWARegister() {
         return;
       }
     }
+
+    // Detect if mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Mobile devices may need more time for service worker registration
+    const delay = isMobile ? 5000 : 3000;
+    
+    console.log(`ℹ️ Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, will show prompt after ${delay}ms`);
     
     // Wait for service worker to register, then show prompt
     const timer = setTimeout(() => {
@@ -161,7 +189,8 @@ export default function PWARegister() {
         swRegistered,
         hasDeferredPrompt: !!deferredPrompt,
         isInstalled,
-        userAgent: navigator.userAgent
+        isMobile,
+        userAgent: navigator.userAgent.substring(0, 100) // Truncate for readability
       });
       
       // Always show install option after delay (for manual install)
@@ -169,7 +198,7 @@ export default function PWARegister() {
       // Especially important for Chrome on mobile
       console.log('ℹ️ Showing install prompt (will show for all browsers)');
       setShowInstallPrompt(true);
-    }, 3000);
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [swRegistered, isInstalled, deferredPrompt]);
@@ -228,8 +257,24 @@ export default function PWARegister() {
     return null;
   }
 
+  // Detect mobile for styling
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-slide-up">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-[9999] md:bottom-4 md:left-auto md:right-4 md:w-96 animate-slide-up"
+      style={{
+        // Ensure it's visible on mobile
+        position: 'fixed',
+        zIndex: 9999,
+        ...(isMobile && {
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '16px',
+        })
+      }}
+    >
       <div className="bg-wood-800 text-white p-4 rounded-lg shadow-xl border-2 border-wood-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex-1">
           <p className="font-semibold text-base mb-1">{t.installAppTitle}</p>
