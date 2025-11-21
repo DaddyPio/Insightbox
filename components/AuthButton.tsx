@@ -46,12 +46,6 @@ export default function AuthButton({ submitLabel = '登入連結' }: { submitLab
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
       const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
 
-      // Check if we're in PWA
-      const isStandalone = typeof window !== 'undefined' && (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true
-      );
-
       const { data, error } = await supabaseBrowser.auth.signInWithOtp({
         email,
         options: {
