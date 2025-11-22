@@ -126,23 +126,20 @@ export async function POST(request: NextRequest) {
     // Log code for debugging (in all environments for now)
     console.log('🔐 Verification code generated:', code);
 
-    // Return response with error details if email failed
-    if (!emailSent && resend && process.env.RESEND_FROM_EMAIL) {
-      return NextResponse.json({
-        success: false,
-        message: 'Failed to send verification code email',
-        error: emailError?.message || 'Unknown email error',
-        details: emailError,
-        // Include code in response for debugging (remove in production)
-        code: code,
-      }, { status: 500 });
-    }
-
+    // Return response - always include code for now since Resend has limitations
+    // Even if email fails, return success with code so user can still login
     return NextResponse.json({
       success: true,
-      message: emailSent ? 'Verification code sent' : 'Verification code generated (email not configured)',
-      // Include code in response for debugging (remove in production)
+      message: emailSent 
+        ? 'Verification code sent' 
+        : 'Verification code generated (email sending failed, but code is available)',
+      // Always include code in response for now (since Resend free tier has limitations)
       code: code,
+      emailSent: emailSent,
+      emailError: emailError ? {
+        message: emailError.message,
+        code: emailError.code,
+      } : null,
     });
   } catch (error: any) {
     console.error('Error in send-code:', error);
