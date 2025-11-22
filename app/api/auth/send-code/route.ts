@@ -30,13 +30,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const insertData: Database['public']['Tables']['verification_codes']['Insert'] = {
+    const insertData = {
       email: email.toLowerCase().trim(),
       code,
       expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
     };
 
-    const { error: dbError } = await supabaseAdmin
+    const { error: dbError } = await (supabaseAdmin as any)
       .from('verification_codes')
       .insert(insertData);
 
