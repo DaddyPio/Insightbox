@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
+import { getStoredLanguage } from '@/lib/utils/languageContext';
+import { getTranslation, type AppLanguage } from '@/lib/utils/translations';
 
-export default function AuthButton({ submitLabel = '登入連結' }: { submitLabel?: string }) {
+export default function AuthButton({ submitLabel = '發送驗證碼' }: { submitLabel?: string }) {
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loginLink, setLoginLink] = useState<string | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
+  const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
 
   useEffect(() => {
     const sync = async () => {
@@ -25,49 +30,61 @@ export default function AuthButton({ submitLabel = '登入連結' }: { submitLab
     };
   }, []);
 
-  const signIn = async (e: React.FormEvent) => {
+  const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
     setError(null);
     setInfo(null);
+    setCodeSent(false);
     try {
-      // Detect if we're in a PWA (standalone mode)
-      const isStandalone = typeof window !== 'undefined' && (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true
-      );
-
-      // Get the current origin
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      
-      // Use auth callback page for better PWA support
-      // The callback page will handle redirecting back to the app
-      // Include a sync page parameter for PWA to listen
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
-
-      const { data, error } = await supabaseBrowser.auth.signInWithOtp({
-        email,
+      const { error } = await supabaseBrowser.auth.signInWithOtp({
+        email: email.trim(),
         options: {
-          emailRedirectTo: redirectTo,
+          // Don't use emailRedirectTo, we'll use OTP code instead
+          shouldCreateUser: true, // Allow signup if user doesn't exist
         },
       });
       
       if (error) throw error;
       
-      // If in PWA, store the redirect URL so user can copy it
-      if (isStandalone && data) {
-        // Store the redirect URL for copying
-        setLoginLink(redirectTo);
-        setInfo('登入連結已寄出！請查看 email。如果連結在瀏覽器中打開，請複製連結並在應用中打開。');
-      } else {
-        setInfo('登入連結已寄出，請到信箱點擊連結完成登入');
-      }
-      setEmail('');
+      setCodeSent(true);
+      setInfo(language === 'zh-TW' 
+        ? '驗證碼已發送至您的信箱，請輸入 6 位數驗證碼' 
+        : language === 'ja'
+        ? '確認コードがメールに送信されました。6桁の確認コードを入力してください'
+        : 'Verification code sent to your email. Please enter the 6-digit code');
     } catch (err: any) {
-      setError(err?.message || 'Failed to send login link');
+      setError(err?.message || (language === 'zh-TW' ? '發送驗證碼失敗' : language === 'ja' ? '確認コードの送信に失敗しました' : 'Failed to send verification code'));
     } finally {
       setSending(false);
+    }
+  };
+
+  const verifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifying(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const { data, error } = await supabaseBrowser.auth.verifyOtp({
+        email: email.trim(),
+        token: code.trim(),
+        type: 'email',
+      });
+      
+      if (error) throw error;
+      
+      if (data.session) {
+        setInfo(language === 'zh-TW' ? '登入成功！' : language === 'ja' ? 'ログイン成功！' : 'Login successful!');
+        setCodeSent(false);
+        setCode('');
+        setEmail('');
+        // Auth state change will update userEmail automatically
+      }
+    } catch (err: any) {
+      setError(err?.message || (language === 'zh-TW' ? '驗證碼錯誤，請重試' : language === 'ja' ? '確認コードが正しくありません。もう一度お試しください' : 'Invalid verification code. Please try again'));
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -87,51 +104,93 @@ export default function AuthButton({ submitLabel = '登入連結' }: { submitLab
     );
   }
 
+  if (!codeSent) {
+    // Step 1: Enter email and send code
+    return (
+      <div className="space-y-4">
+        <form onSubmit={sendCode} className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="email"
+            placeholder={language === 'zh-TW' ? '輸入 Email' : language === 'ja' ? 'メールアドレスを入力' : 'Enter Email'}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="input-field flex-1"
+            disabled={sending}
+          />
+          <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50 whitespace-nowrap">
+            {sending 
+              ? (language === 'zh-TW' ? '發送中...' : language === 'ja' ? '送信中...' : 'Sending...')
+              : submitLabel}
+          </button>
+        </form>
+        {info && <p className="text-sm text-wood-600">{info}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </div>
+    );
+  }
+
+  // Step 2: Enter verification code
   return (
-    <div className="flex items-center gap-2">
-      <form onSubmit={signIn} className="flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="text-sm text-wood-600">
+        {language === 'zh-TW' 
+          ? `驗證碼已發送至：${email}`
+          : language === 'ja'
+          ? `確認コードを送信しました：${email}`
+          : `Code sent to: ${email}`}
+      </div>
+      <form onSubmit={verifyCode} className="flex flex-col sm:flex-row gap-2">
         <input
-          type="email"
-          placeholder="輸入 Email 登入"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          placeholder={language === 'zh-TW' ? '輸入 6 位數驗證碼' : language === 'ja' ? '6桁の確認コードを入力' : 'Enter 6-digit code'}
+          value={code}
+          onChange={(e) => {
+            // Only allow numbers
+            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+            setCode(value);
+          }}
           required
-          className="input-field w-44 sm:w-56"
+          className="input-field flex-1 text-center text-2xl tracking-widest font-mono"
+          disabled={verifying}
+          autoFocus
         />
-        <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50">
-          {sending ? '寄送中...' : submitLabel}
+        <button type="submit" disabled={verifying || code.length !== 6} className="btn-primary disabled:opacity-50 whitespace-nowrap">
+          {verifying 
+            ? (language === 'zh-TW' ? '驗證中...' : language === 'ja' ? '確認中...' : 'Verifying...')
+            : (language === 'zh-TW' ? '確認登入' : language === 'ja' ? 'ログイン確認' : 'Verify & Login')}
         </button>
       </form>
-      {info && (
-        <div className="text-xs text-wood-600 space-y-2">
-          <p>{info}</p>
-          {loginLink && (
-            <div className="mt-2 p-2 bg-wood-50 rounded border border-wood-200">
-              <p className="text-wood-700 mb-1 font-semibold">如果 email 連結在瀏覽器中打開：</p>
-              <p className="text-wood-600 mb-2 text-xs">1. 複製下面的連結</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={loginLink}
-                  className="flex-1 px-2 py-1 text-xs border border-wood-300 rounded bg-white"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(loginLink);
-                    setInfo('連結已複製！請在應用中打開此連結。');
-                  }}
-                  className="px-3 py-1 text-xs bg-accent text-white rounded hover:bg-accent-dark"
-                >
-                  複製
-                </button>
-              </div>
-              <p className="text-wood-600 mt-2 text-xs">2. 在 InsightBox 應用中，長按地址欄並貼上連結，然後打開</p>
-            </div>
-          )}
-        </div>
-      )}
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      <div className="flex items-center justify-between text-sm">
+        <button
+          onClick={() => {
+            setCodeSent(false);
+            setCode('');
+            setError(null);
+            setInfo(null);
+          }}
+          className="text-wood-600 hover:text-wood-800 underline"
+        >
+          {language === 'zh-TW' ? '重新發送驗證碼' : language === 'ja' ? '確認コードを再送信' : 'Resend Code'}
+        </button>
+        <button
+          onClick={() => {
+            setCodeSent(false);
+            setCode('');
+            setEmail('');
+            setError(null);
+            setInfo(null);
+          }}
+          className="text-wood-600 hover:text-wood-800 underline"
+        >
+          {language === 'zh-TW' ? '更改 Email' : language === 'ja' ? 'メールアドレスを変更' : 'Change Email'}
+        </button>
+      </div>
+      {info && <p className="text-sm text-green-600">{info}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
