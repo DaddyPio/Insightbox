@@ -84,21 +84,16 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
       
       setCodeSent(true);
       
-      // Show code in all environments for debugging (since email might not be working)
+      // Log code to console for debugging (not shown to user)
       if (data.code) {
         console.log('🔐 Verification code received:', data.code);
-        setInfo(language === 'zh-TW' 
-          ? `驗證碼已發送至您的信箱，請輸入 6 位數驗證碼\n（調試：驗證碼 ${data.code}）` 
-          : language === 'ja'
-          ? `確認コードがメールに送信されました。6桁の確認コードを入力してください\n（デバッグ：確認コード ${data.code}）`
-          : `Verification code sent to your email. Please enter the 6-digit code\n(Debug: Code ${data.code})`);
-      } else {
-        setInfo(language === 'zh-TW' 
-          ? '驗證碼已發送至您的信箱，請輸入 6 位數驗證碼' 
-          : language === 'ja'
-          ? '確認コードがメールに送信されました。6桁の確認コードを入力してください'
-          : 'Verification code sent to your email. Please enter the 6-digit code');
       }
+      
+      setInfo(language === 'zh-TW' 
+        ? '驗證碼已發送至您的信箱，請輸入 6 位數驗證碼' 
+        : language === 'ja'
+        ? '確認コードがメールに送信されました。6桁の確認コードを入力してください'
+        : 'Verification code sent to your email. Please enter the 6-digit code');
     } catch (err: any) {
       console.error('❌ Exception in sendCode:', err);
       setError(err?.message || (language === 'zh-TW' ? '發送驗證碼失敗' : language === 'ja' ? '確認コードの送信に失敗しました' : 'Failed to send verification code'));
