@@ -119,43 +119,35 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ No codes found matching both email and code');
     }
 
-    // Find the valid code using database NOW() for accurate comparison
-    // This ensures we use the database server's time, avoiding timezone issues
-    const { data: codeData, error: findError } = await (supabaseAdmin as any)
-      .rpc('verify_verification_code', {
-        p_email: normalizedEmail,
-        p_code: normalizedCode,
-      })
+    // Find the valid code using manual query (RPC function doesn't exist)
+    // Use manual query directly since RPC function is not available
+    const now = new Date().toISOString();
+    console.log('🔍 Querying for valid code with manual query...');
+    const { data: validCodeData, error: manualFindError } = await (supabaseAdmin as any)
+      .from('verification_codes')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .eq('code', normalizedCode)
+      .eq('used', false)
+      .gt('expires_at', now)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
-
-    // If RPC function doesn't exist, fall back to manual query
-    let validCodeData = codeData;
-    if (findError && findError.code === '42883') {
-      // Function doesn't exist, use manual query
-      console.log('⚠️ RPC function not found, using manual query');
-      const now = new Date().toISOString();
-      const { data: manualCodeData, error: manualFindError } = await (supabaseAdmin as any)
-        .from('verification_codes')
-        .select('*')
-        .eq('email', normalizedEmail)
-        .eq('code', normalizedCode)
-        .eq('used', false)
-        .gt('expires_at', now)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (manualFindError && manualFindError.code !== 'PGRST116') {
+    
+    if (manualFindError) {
+      if (manualFindError.code === 'PGRST116') {
+        // No rows found - this is expected if code is invalid/expired/used
+        console.log('⚠️ No valid code found (PGRST116 - no rows)');
+      } else {
         console.error('❌ Manual query error:', manualFindError);
       }
-      validCodeData = manualCodeData;
-    } else if (findError) {
-      console.error('❌ RPC query error:', findError);
+    } else if (validCodeData) {
+      console.log('✅ Valid code found via manual query:', validCodeData.id);
     }
 
     console.log('🔍 Verification result:', {
       found: !!validCodeData,
-      error: findError,
+      error: manualFindError,
       codeData: validCodeData ? {
         id: validCodeData.id,
         expires_at: validCodeData.expires_at,
