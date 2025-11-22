@@ -52,15 +52,27 @@ export async function POST(request: NextRequest) {
     let emailSent = false;
     let emailError: any = null;
 
+    // Log configuration status
+    console.log('🔍 Resend Configuration Check:');
+    console.log('  - resend instance exists:', !!resend);
+    console.log('  - RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    console.log('  - RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length || 0);
+    console.log('  - RESEND_FROM_EMAIL exists:', !!process.env.RESEND_FROM_EMAIL);
+    console.log('  - RESEND_FROM_EMAIL value:', process.env.RESEND_FROM_EMAIL || 'NOT SET');
+
     if (resend && process.env.RESEND_FROM_EMAIL) {
       try {
-        console.log('📧 Sending verification code email via Resend to:', email.toLowerCase().trim());
-        console.log('📧 From email:', process.env.RESEND_FROM_EMAIL);
-        console.log('📧 Resend API Key exists:', !!process.env.RESEND_API_KEY);
+        const toEmail = email.toLowerCase().trim();
+        const fromEmail = process.env.RESEND_FROM_EMAIL;
         
-        const { data, error: emailErrorResponse } = await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL,
-          to: email.toLowerCase().trim(),
+        console.log('📧 Attempting to send email via Resend:');
+        console.log('  - From:', fromEmail);
+        console.log('  - To:', toEmail);
+        console.log('  - Code:', code);
+        
+        const emailPayload = {
+          from: fromEmail,
+          to: toEmail,
           subject: 'InsightBox 驗證碼 / Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -80,24 +92,35 @@ export async function POST(request: NextRequest) {
             </div>
           `,
           text: `InsightBox 驗證碼 / Verification Code: ${code}\n\n此驗證碼將在 10 分鐘後過期 / This code will expire in 10 minutes.`,
-        });
+        };
+        
+        console.log('📧 Calling resend.emails.send()...');
+        const result = await resend.emails.send(emailPayload);
+        console.log('📧 Resend API call completed');
+        console.log('📧 Result:', JSON.stringify(result, null, 2));
 
-        if (emailErrorResponse) {
-          emailError = emailErrorResponse;
-          console.error('❌ Error sending email via Resend:', JSON.stringify(emailErrorResponse, null, 2));
+        if (result.error) {
+          emailError = result.error;
+          console.error('❌ Error in Resend response:', JSON.stringify(result.error, null, 2));
         } else {
           emailSent = true;
           console.log('✅ Verification code email sent successfully via Resend');
-          console.log('✅ Resend response data:', JSON.stringify(data, null, 2));
+          console.log('✅ Email ID:', result.data?.id);
         }
       } catch (emailErr: any) {
         emailError = emailErr;
-        console.error('❌ Exception sending email:', emailErr);
-        console.error('❌ Exception details:', JSON.stringify(emailErr, null, 2));
+        console.error('❌ Exception caught while sending email:');
+        console.error('  - Error type:', emailErr?.constructor?.name);
+        console.error('  - Error message:', emailErr?.message);
+        console.error('  - Error stack:', emailErr?.stack);
+        console.error('  - Full error:', JSON.stringify(emailErr, Object.getOwnPropertyNames(emailErr), 2));
       }
     } else {
       // No Resend configured
-      console.warn('⚠️ Resend not configured. RESEND_API_KEY:', !!process.env.RESEND_API_KEY, 'RESEND_FROM_EMAIL:', !!process.env.RESEND_FROM_EMAIL);
+      console.warn('⚠️ Resend not configured or missing environment variables:');
+      console.warn('  - resend instance:', !!resend);
+      console.warn('  - RESEND_API_KEY:', !!process.env.RESEND_API_KEY);
+      console.warn('  - RESEND_FROM_EMAIL:', !!process.env.RESEND_FROM_EMAIL);
     }
 
     // Log code for debugging (in all environments for now)
