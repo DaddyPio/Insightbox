@@ -48,15 +48,17 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
     setInfo(null);
     setCodeSent(false);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       console.log('📤 Sending verification code request to:', '/api/auth/send-code');
-      console.log('📤 Email:', email.trim());
+      console.log('📤 Email (normalized):', normalizedEmail);
+      console.log('📤 Email (original):', email);
       
       const response = await fetch('/api/auth/send-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
 
       console.log('📥 Response status:', response.status, response.statusText);
@@ -111,7 +113,15 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
     setError(null);
     setInfo(null);
     try {
-      console.log('🔐 Verifying code:', code);
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedCode = code.trim();
+      
+      console.log('🔐 Verifying code:', {
+        email: normalizedEmail,
+        code: normalizedCode,
+        originalEmail: email,
+        originalCode: code,
+      });
       
       // Verify code via our API
       const response = await fetch('/api/auth/verify-code', {
@@ -120,8 +130,8 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          email: email.trim(),
-          code: code.trim(),
+          email: normalizedEmail,
+          code: normalizedCode,
         }),
       });
 
