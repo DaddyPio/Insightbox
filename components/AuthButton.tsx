@@ -159,6 +159,11 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
         } else {
           throw new Error('Session was not created');
         }
+      } else if (data.magicLink && data.redirect) {
+        // Fallback: redirect to magic link
+        console.log('🔑 Redirecting to magic link...');
+        window.location.href = data.magicLink;
+        return;
       } else if (data.token) {
         // Fallback: try to use token directly
         console.log('🔑 Trying to use token directly...');

@@ -72,56 +72,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a session directly using admin API
-    // Generate a session token for the user
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
+    // Generate a magic link and return it for frontend to redirect
+    // This is more reliable than trying to verify the token on the server side
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    
+    console.log('🔑 Generating magic link for user:', normalizedEmail);
+    
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email: normalizedEmail,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback`,
       },
     });
 
-    if (sessionError) {
-      console.error('Error generating session link:', sessionError);
-      throw sessionError;
+    if (linkError) {
+      console.error('❌ Error generating link:', linkError);
+      throw linkError;
     }
 
-    // Extract token and hashed_token from the link
-    const url = new URL(sessionData.properties.action_link);
-    const token = url.searchParams.get('token');
-    const type = url.searchParams.get('type') || 'magiclink';
-    const hashedToken = url.searchParams.get('token_hash');
+    console.log('✅ Magic link generated successfully');
 
-    // Create a session using the token
-    // We need to exchange the token for a session
-    const { data: exchangeData, error: exchangeError } = await supabaseAdmin.auth.verifyOtp({
-      type: 'magiclink',
-      token_hash: hashedToken || token || '',
-      email: normalizedEmail,
-    });
-
-    if (exchangeError || !exchangeData.session) {
-      console.error('Error exchanging token for session:', exchangeError);
-      // Fallback: return token and let frontend handle it
-      return NextResponse.json({
-        success: true,
-        userId,
-        email: normalizedEmail,
-        token,
-        type,
-        hashedToken,
-      });
-    }
-
-    // Return session tokens
+    // Return the magic link for frontend to redirect
+    // This avoids token expiration issues and lets Supabase handle the verification
     return NextResponse.json({
       success: true,
       userId,
       email: normalizedEmail,
-      accessToken: exchangeData.session.access_token,
-      refreshToken: exchangeData.session.refresh_token,
-      token, // Keep for backward compatibility
-      type,
+      magicLink: linkData.properties.action_link,
+      redirect: true,
     });
   } catch (error: any) {
     console.error('Error in verify-code:', error);
