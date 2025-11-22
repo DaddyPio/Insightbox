@@ -48,15 +48,19 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
     setInfo(null);
     setCodeSent(false);
     try {
-      const { error } = await supabaseBrowser.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          // Don't use emailRedirectTo, we'll use OTP code instead
-          shouldCreateUser: true, // Allow signup if user doesn't exist
+      const response = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ email: email.trim() }),
       });
-      
-      if (error) throw error;
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send verification code');
+      }
       
       setCodeSent(true);
       setInfo(language === 'zh-TW' 
@@ -64,6 +68,12 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
         : language === 'ja'
         ? '確認コードがメールに送信されました。6桁の確認コードを入力してください'
         : 'Verification code sent to your email. Please enter the 6-digit code');
+      
+      // In development, show the code for testing
+      if (process.env.NODE_ENV === 'development' && data.code) {
+        console.log('🔐 Verification code (dev only):', data.code);
+        setInfo((prev) => prev + ` (開發模式：驗證碼 ${data.code})`);
+      }
     } catch (err: any) {
       setError(err?.message || (language === 'zh-TW' ? '發送驗證碼失敗' : language === 'ja' ? '確認コードの送信に失敗しました' : 'Failed to send verification code'));
     } finally {
@@ -77,20 +87,45 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
     setError(null);
     setInfo(null);
     try {
-      const { data, error } = await supabaseBrowser.auth.verifyOtp({
-        email: email.trim(),
-        token: code.trim(),
-        type: 'email',
+      // Verify code via our API
+      const response = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: email.trim(),
+          code: code.trim(),
+        }),
       });
-      
-      if (error) throw error;
-      
-      if (data.session) {
-        setInfo(language === 'zh-TW' ? '登入成功！' : language === 'ja' ? 'ログイン成功！' : 'Login successful!');
-        setCodeSent(false);
-        setCode('');
-        setEmail('');
-        // Auth state change will update userEmail automatically
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid verification code');
+      }
+
+      // After server-side verification, sign in using the token
+      if (data.token && data.type) {
+        const { data: authData, error: authError } = await supabaseBrowser.auth.verifyOtp({
+          email: email.trim(),
+          token: data.token,
+          type: data.type as any,
+        });
+
+        if (authError) {
+          throw authError;
+        }
+
+        if (authData.session) {
+          setInfo(language === 'zh-TW' ? '登入成功！' : language === 'ja' ? 'ログイン成功！' : 'Login successful!');
+          setCodeSent(false);
+          setCode('');
+          setEmail('');
+          // Auth state change will update userEmail automatically
+        }
+      } else {
+        throw new Error('Failed to create session');
       }
     } catch (err: any) {
       setError(err?.message || (language === 'zh-TW' ? '驗證碼錯誤，請重試' : language === 'ja' ? '確認コードが正しくありません。もう一度お試しください' : 'Invalid verification code. Please try again'));
