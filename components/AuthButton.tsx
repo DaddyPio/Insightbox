@@ -134,8 +134,16 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
         throw new Error(data.error || 'Invalid verification code');
       }
 
-      // After server-side verification, sign in using the session tokens
-      if (data.accessToken && data.refreshToken) {
+      // After server-side verification, sign in using the session tokens or magic link
+      if (data.magicLink && data.redirect) {
+        // Redirect to magic link - this is the preferred method
+        console.log('🔑 Redirecting to magic link:', data.magicLink);
+        setInfo(language === 'zh-TW' ? '正在完成登入...' : language === 'ja' ? 'ログインを完了しています...' : 'Completing login...');
+        // Redirect immediately
+        window.location.href = data.magicLink;
+        return;
+      } else if (data.accessToken && data.refreshToken) {
+        // Fallback: use session tokens directly
         console.log('🔑 Setting session with access and refresh tokens...');
         
         // Use setSession with both access and refresh tokens
@@ -159,11 +167,6 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
         } else {
           throw new Error('Session was not created');
         }
-      } else if (data.magicLink && data.redirect) {
-        // Fallback: redirect to magic link
-        console.log('🔑 Redirecting to magic link...');
-        window.location.href = data.magicLink;
-        return;
       } else if (data.token) {
         // Fallback: try to use token directly
         console.log('🔑 Trying to use token directly...');
@@ -171,7 +174,8 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
         window.location.href = `/auth/callback?token=${data.token}&type=${data.type || 'magiclink'}`;
         return;
       } else {
-        throw new Error('No session tokens received from server');
+        console.error('❌ Unexpected response format:', data);
+        throw new Error('No session tokens or magic link received from server');
       }
     } catch (err: any) {
       console.error('❌ Exception in verifyCode:', err);
