@@ -49,10 +49,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email with verification code using Resend
+    let emailSent = false;
+    let emailError: any = null;
+
     if (resend && process.env.RESEND_FROM_EMAIL) {
       try {
         console.log('📧 Sending verification code email via Resend to:', email.toLowerCase().trim());
-        const { data, error: emailError } = await resend.emails.send({
+        console.log('📧 From email:', process.env.RESEND_FROM_EMAIL);
+        console.log('📧 Resend API Key exists:', !!process.env.RESEND_API_KEY);
+        
+        const { data, error: emailErrorResponse } = await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL,
           to: email.toLowerCase().trim(),
           subject: 'InsightBox 驗證碼 / Verification Code',
@@ -76,33 +82,44 @@ export async function POST(request: NextRequest) {
           text: `InsightBox 驗證碼 / Verification Code: ${code}\n\n此驗證碼將在 10 分鐘後過期 / This code will expire in 10 minutes.`,
         });
 
-        if (emailError) {
-          console.error('❌ Error sending email via Resend:', emailError);
-          // Fallback to console log in development
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔐 Verification code (dev only):', code);
-          }
+        if (emailErrorResponse) {
+          emailError = emailErrorResponse;
+          console.error('❌ Error sending email via Resend:', JSON.stringify(emailErrorResponse, null, 2));
         } else {
+          emailSent = true;
           console.log('✅ Verification code email sent successfully via Resend');
+          console.log('✅ Resend response data:', JSON.stringify(data, null, 2));
         }
-      } catch (emailErr) {
-        console.error('❌ Error sending email:', emailErr);
-        // Continue even if email fails - code is stored in DB
+      } catch (emailErr: any) {
+        emailError = emailErr;
+        console.error('❌ Exception sending email:', emailErr);
+        console.error('❌ Exception details:', JSON.stringify(emailErr, null, 2));
       }
     } else {
       // No Resend configured
       console.warn('⚠️ Resend not configured. RESEND_API_KEY:', !!process.env.RESEND_API_KEY, 'RESEND_FROM_EMAIL:', !!process.env.RESEND_FROM_EMAIL);
-      // Log code in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔐 Verification code (dev only - Resend not configured):', code);
-      }
+    }
+
+    // Log code for debugging (in all environments for now)
+    console.log('🔐 Verification code generated:', code);
+
+    // Return response with error details if email failed
+    if (!emailSent && resend && process.env.RESEND_FROM_EMAIL) {
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to send verification code email',
+        error: emailError?.message || 'Unknown email error',
+        details: emailError,
+        // Include code in response for debugging (remove in production)
+        code: code,
+      }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Verification code sent',
-      // In development, return code for testing if Resend is not configured
-      ...(process.env.NODE_ENV === 'development' && !resend && { code }),
+      message: emailSent ? 'Verification code sent' : 'Verification code generated (email not configured)',
+      // Include code in response for debugging (remove in production)
+      code: code,
     });
   } catch (error: any) {
     console.error('Error in send-code:', error);
