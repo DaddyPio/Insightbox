@@ -30,10 +30,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create expiration time: 10 minutes from now
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
+    
+    console.log('🔐 Creating verification code:', {
+      email: email.toLowerCase().trim(),
+      code: code,
+      created_at: now,
+      expires_at: expiresAt,
+      expires_in_minutes: 10,
+    });
+
     const insertData = {
       email: email.toLowerCase().trim(),
       code,
-      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
+      expires_at: expiresAt,
     };
 
     const { error: dbError } = await (supabaseAdmin as any)

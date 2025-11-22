@@ -22,18 +22,66 @@ export async function POST(request: NextRequest) {
     }
 
     // Find and verify the code
+    const normalizedEmail = email.toLowerCase().trim();
+    const now = new Date().toISOString();
+    
+    console.log('🔍 Verifying code:', {
+      email: normalizedEmail,
+      code: code,
+      currentTime: now,
+    });
+
+    // First, get all matching codes (for debugging)
+    const { data: allCodes, error: listError } = await (supabaseAdmin as any)
+      .from('verification_codes')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .eq('code', code)
+      .order('created_at', { ascending: false });
+    
+    console.log('🔍 All matching codes found:', allCodes?.length || 0);
+    if (allCodes && allCodes.length > 0) {
+      allCodes.forEach((c: any, i: number) => {
+        console.log(`  Code ${i + 1}:`, {
+          id: c.id,
+          used: c.used,
+          expires_at: c.expires_at,
+          created_at: c.created_at,
+          isExpired: c.expires_at < now,
+          isUsed: c.used,
+        });
+      });
+    }
+
+    // Now find the valid one
     const { data: codeData, error: findError } = await (supabaseAdmin as any)
       .from('verification_codes')
       .select('*')
-      .eq('email', email.toLowerCase().trim())
+      .eq('email', normalizedEmail)
       .eq('code', code)
       .eq('used', false)
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', now)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
+    console.log('🔍 Verification result:', {
+      found: !!codeData,
+      error: findError,
+      codeData: codeData ? {
+        id: codeData.id,
+        expires_at: codeData.expires_at,
+        created_at: codeData.created_at,
+        used: codeData.used,
+      } : null,
+    });
+
     if (findError || !codeData) {
+      console.error('❌ Code verification failed:', {
+        findError,
+        hasCodeData: !!codeData,
+        allCodesCount: allCodes?.length || 0,
+      });
       return NextResponse.json(
         { error: 'Invalid or expired verification code' },
         { status: 400 }
