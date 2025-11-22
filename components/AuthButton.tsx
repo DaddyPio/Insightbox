@@ -16,7 +16,17 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
   const [codeSent, setCodeSent] = useState(false);
   const [language, setLanguage] = useState<AppLanguage>(getStoredLanguage() || 'en');
 
+  const t = getTranslation(language);
+
   useEffect(() => {
+    const storedLang = getStoredLanguage();
+    if (storedLang) {
+      setLanguage(storedLang);
+    }
+
+    const onLang = () => setLanguage(getStoredLanguage() || 'en');
+    window.addEventListener('languageChanged', onLang);
+
     const sync = async () => {
       const { data } = await supabaseBrowser.auth.getUser();
       setUserEmail(data.user?.email ?? null);
@@ -26,6 +36,7 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
       sync();
     });
     return () => {
+      window.removeEventListener('languageChanged', onLang);
       listener.subscription.unsubscribe();
     };
   }, []);
