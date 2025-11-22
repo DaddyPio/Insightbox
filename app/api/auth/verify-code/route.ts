@@ -47,19 +47,20 @@ export async function POST(request: NextRequest) {
       .eq('id', codeData.id);
 
     // Get or create user in Supabase Auth
-    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(
-      email.toLowerCase().trim()
-    );
-
+    // Use listUsers to find existing user by email
+    const normalizedEmail = email.toLowerCase().trim();
+    const { data: usersList, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
     let userId: string;
+    const existingUser = usersList?.users?.find(u => u.email === normalizedEmail);
 
-    if (existingUser?.user) {
+    if (existingUser) {
       // User exists
-      userId = existingUser.user.id;
+      userId = existingUser.id;
     } else {
       // Create new user
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         email_confirm: true, // Auto-confirm email since we verified it
       });
 
