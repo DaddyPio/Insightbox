@@ -90,6 +90,119 @@ export interface Database {
           updated_at?: string;
         };
       };
+      daily_inspiration: {
+        Row: {
+          id: string;
+          date: string;
+          content_json: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          date: string;
+          content_json: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          date?: string;
+          content_json?: Json;
+          created_at?: string;
+        };
+      };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          inspiration_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          inspiration_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          inspiration_id?: string;
+          created_at?: string;
+        };
+      };
+      letters: {
+        Row: {
+          id: string;
+          user_id: string;
+          child_name: string;
+          child_label: string | null;
+          title: string | null;
+          raw_text: string;
+          ai_letter: string;
+          ai_summary: string | null;
+          tone: string | null;
+          tags: string[] | null;
+          is_favorite: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          child_name: string;
+          child_label?: string | null;
+          title?: string | null;
+          raw_text: string;
+          ai_letter: string;
+          ai_summary?: string | null;
+          tone?: string | null;
+          tags?: string[] | null;
+          is_favorite?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          child_name?: string;
+          child_label?: string | null;
+          title?: string | null;
+          raw_text?: string;
+          ai_letter?: string;
+          ai_summary?: string | null;
+          tone?: string | null;
+          tags?: string[] | null;
+          is_favorite?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      verification_codes: {
+        Row: {
+          id: string;
+          email: string;
+          code: string;
+          expires_at: string;
+          used: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          code: string;
+          expires_at: string;
+          used?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          code?: string;
+          expires_at?: string;
+          used?: boolean;
+          created_at?: string;
+        };
+      };
     };
   };
 }
