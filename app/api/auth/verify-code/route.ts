@@ -71,27 +71,56 @@ export async function POST(request: NextRequest) {
       userId = newUser.user.id;
     }
 
-    // Generate a magic link that will auto-sign in the user
-    // We'll use this to create a session
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    // Create a session directly using admin API
+    // Generate a session token for the user
+    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/auth/callback`,
+      },
     });
 
-    if (linkError) {
-      throw linkError;
+    if (sessionError) {
+      console.error('Error generating session link:', sessionError);
+      throw sessionError;
     }
 
-    // Extract the token from the link
-    const url = new URL(linkData.properties.action_link);
+    // Extract token and hashed_token from the link
+    const url = new URL(sessionData.properties.action_link);
     const token = url.searchParams.get('token');
-    const type = url.searchParams.get('type');
+    const type = url.searchParams.get('type') || 'magiclink';
+    const hashedToken = url.searchParams.get('token_hash');
 
+    // Create a session using the token
+    // We need to exchange the token for a session
+    const { data: exchangeData, error: exchangeError } = await supabaseAdmin.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: hashedToken || token || '',
+      email: normalizedEmail,
+    });
+
+    if (exchangeError || !exchangeData.session) {
+      console.error('Error exchanging token for session:', exchangeError);
+      // Fallback: return token and let frontend handle it
+      return NextResponse.json({
+        success: true,
+        userId,
+        email: normalizedEmail,
+        token,
+        type,
+        hashedToken,
+      });
+    }
+
+    // Return session tokens
     return NextResponse.json({
       success: true,
       userId,
-      email: email.toLowerCase().trim(),
-      token,
+      email: normalizedEmail,
+      accessToken: exchangeData.session.access_token,
+      refreshToken: exchangeData.session.refresh_token,
+      token, // Keep for backward compatibility
       type,
     });
   } catch (error: any) {
