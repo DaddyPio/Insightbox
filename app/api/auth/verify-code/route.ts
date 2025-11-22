@@ -42,27 +42,30 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.toLowerCase().trim();
     const normalizedCode = code.trim();
     
-    // Use database NOW() for accurate time comparison (avoids timezone issues)
-    // First, get all matching codes for debugging
-    const { data: allCodes, error: listError } = await (supabaseAdmin as any)
+    // First, get all codes for this email (for debugging)
+    const { data: allEmailCodes, error: emailListError } = await (supabaseAdmin as any)
       .from('verification_codes')
       .select('*')
       .eq('email', normalizedEmail)
-      .eq('code', normalizedCode)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10); // Get last 10 codes for this email
     
-    console.log('🔍 All matching codes found:', allCodes?.length || 0);
-    if (listError) {
-      console.error('❌ Error fetching codes:', listError);
+    console.log('🔍 All codes for email:', normalizedEmail, 'found:', allEmailCodes?.length || 0);
+    if (emailListError) {
+      console.error('❌ Error fetching codes by email:', emailListError);
     }
     
-    if (allCodes && allCodes.length > 0) {
+    if (allEmailCodes && allEmailCodes.length > 0) {
       const now = new Date().toISOString();
-      allCodes.forEach((c: any, i: number) => {
+      console.log('📋 Recent codes for this email:');
+      allEmailCodes.forEach((c: any, i: number) => {
         const expiresAt = new Date(c.expires_at);
         const isExpired = expiresAt < new Date(now);
+        const codeMatches = c.code === normalizedCode;
         console.log(`  Code ${i + 1}:`, {
           id: c.id,
+          code: c.code,
+          codeMatches: codeMatches,
           used: c.used,
           expires_at: c.expires_at,
           created_at: c.created_at,
@@ -73,6 +76,47 @@ export async function POST(request: NextRequest) {
       });
     } else {
       console.warn('⚠️ No codes found for email:', normalizedEmail);
+    }
+
+    // Now get codes matching both email AND code
+    const { data: allCodes, error: listError } = await (supabaseAdmin as any)
+      .from('verification_codes')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .eq('code', normalizedCode)
+      .order('created_at', { ascending: false });
+    
+    console.log('🔍 Codes matching both email and code:', allCodes?.length || 0);
+    console.log('🔍 Searching for:', {
+      email: normalizedEmail,
+      code: normalizedCode,
+      codeType: typeof normalizedCode,
+      codeLength: normalizedCode.length,
+    });
+    
+    if (listError) {
+      console.error('❌ Error fetching matching codes:', listError);
+    }
+    
+    if (allCodes && allCodes.length > 0) {
+      const now = new Date().toISOString();
+      allCodes.forEach((c: any, i: number) => {
+        const expiresAt = new Date(c.expires_at);
+        const isExpired = expiresAt < new Date(now);
+        console.log(`  Matching Code ${i + 1}:`, {
+          id: c.id,
+          code: c.code,
+          codeType: typeof c.code,
+          used: c.used,
+          expires_at: c.expires_at,
+          created_at: c.created_at,
+          isExpired: isExpired,
+          isUsed: c.used,
+          timeUntilExpiry: isExpired ? 'EXPIRED' : `${Math.round((expiresAt.getTime() - new Date(now).getTime()) / 1000 / 60)} minutes`,
+        });
+      });
+    } else {
+      console.warn('⚠️ No codes found matching both email and code');
     }
 
     // Find the valid code using database NOW() for accurate comparison

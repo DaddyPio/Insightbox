@@ -44,21 +44,37 @@ export async function POST(request: NextRequest) {
 
     const insertData = {
       email: email.toLowerCase().trim(),
-      code,
+      code: code.toString(), // Ensure code is stored as string
       expires_at: expiresAt,
     };
 
-    const { error: dbError } = await (supabaseAdmin as any)
+    console.log('💾 Inserting verification code to database:', {
+      email: insertData.email,
+      code: insertData.code,
+      codeType: typeof insertData.code,
+      expires_at: insertData.expires_at,
+    });
+
+    const { data: insertedData, error: dbError } = await (supabaseAdmin as any)
       .from('verification_codes')
-      .insert(insertData);
+      .insert(insertData)
+      .select();
 
     if (dbError) {
-      console.error('Error storing verification code:', dbError);
+      console.error('❌ Error storing verification code:', dbError);
+      console.error('❌ Insert data was:', insertData);
       return NextResponse.json(
         { error: 'Failed to generate verification code' },
         { status: 500 }
       );
     }
+
+    console.log('✅ Verification code stored successfully:', {
+      id: insertedData?.[0]?.id,
+      email: insertedData?.[0]?.email,
+      code: insertedData?.[0]?.code,
+      expires_at: insertedData?.[0]?.expires_at,
+    });
 
     // Send email with verification code using Resend
     let emailSent = false;
