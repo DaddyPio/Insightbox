@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find and verify the code
-    const { data: codeData, error: findError } = await supabaseAdmin
+    const { data: codeData, error: findError } = await (supabaseAdmin as any)
       .from('verification_codes')
       .select('*')
       .eq('email', email.toLowerCase().trim())
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark code as used
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('verification_codes')
       .update({ used: true })
       .eq('id', codeData.id);
