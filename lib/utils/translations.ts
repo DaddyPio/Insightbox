@@ -334,7 +334,7 @@ export const translations: Record<AppLanguage, Translations> = {
     stopRecording: '停止錄音',
     loading: '載入中...',
     installAppTitle: '安裝 InsightBox',
-    installAppDescription: '將應用添加到主屏幕，獲得更好的體驗',
+    installAppDescription: '將應用加到桌面',
     install: '安裝',
     later: '稍後',
     howToUse: '如何使用 InsightBox？',
