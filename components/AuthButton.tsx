@@ -128,19 +128,22 @@ export default function AuthButton({ submitLabel = '發送驗證碼' }: { submit
       console.log('📥 Verify response status:', response.status);
       
       const data = await response.json();
-      console.log('📥 Verify response data:', data);
+      console.log('📥 Verify response data:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         throw new Error(data.error || 'Invalid verification code');
       }
 
       // After server-side verification, sign in using the session tokens or magic link
-      if (data.magicLink && data.redirect) {
-        // Redirect to magic link - this is the preferred method
-        console.log('🔑 Redirecting to magic link:', data.magicLink);
+      // Priority 1: Use magic link redirect (most reliable)
+      if (data.magicLink) {
+        console.log('🔑 Magic link received, redirecting...');
+        console.log('🔑 Magic link URL:', data.magicLink);
         setInfo(language === 'zh-TW' ? '正在完成登入...' : language === 'ja' ? 'ログインを完了しています...' : 'Completing login...');
-        // Redirect immediately
-        window.location.href = data.magicLink;
+        // Use setTimeout to ensure state update is visible before redirect
+        setTimeout(() => {
+          window.location.href = data.magicLink;
+        }, 100);
         return;
       } else if (data.accessToken && data.refreshToken) {
         // Fallback: use session tokens directly
