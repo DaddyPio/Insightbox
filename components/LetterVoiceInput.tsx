@@ -106,12 +106,11 @@ export default function LetterVoiceInput({ onTranscription, disabled }: LetterVo
 
   return (
     <div className="flex flex-col items-center space-y-3">
+      {isRecording && (
+        <p className="text-sm text-wood-600">{t.recordingHint}</p>
+      )}
       <button
-        onMouseDown={startRecording}
-        onMouseUp={stopRecording}
-        onMouseLeave={stopRecording}
-        onTouchStart={startRecording}
-        onTouchEnd={stopRecording}
+        onClick={isRecording ? stopRecording : startRecording}
         disabled={disabled}
         className={`
           ${isRecording 
@@ -122,26 +121,22 @@ export default function LetterVoiceInput({ onTranscription, disabled }: LetterVo
           disabled:opacity-50 disabled:cursor-not-allowed
           flex items-center space-x-3 text-lg
           shadow-lg
-          ${isRecording ? 'cursor-pointer' : ''}
         `}
       >
         {isRecording ? (
           <>
             <span className="w-4 h-4 bg-white rounded-full animate-pulse"></span>
-            <span>{t.recording} {formatTime(recordingTime)}</span>
+            <span>{t.stopRecording} {formatTime(recordingTime)}</span>
           </>
         ) : (
           <>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
-            <span>{t.holdToSpeak}</span>
+            <span>{t.recordVoice}</span>
           </>
         )}
       </button>
-      {isRecording && (
-        <p className="text-sm text-wood-600">{t.releaseToStop}</p>
-      )}
       {error && (
         <p className="mt-2 text-sm text-red-600">{error}</p>
       )}
