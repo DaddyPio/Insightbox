@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { Database } from '@/lib/supabase/types';
 import crypto from 'crypto';
 import { Resend } from 'resend';
 
@@ -29,13 +30,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const insertData: Database['public']['Tables']['verification_codes']['Insert'] = {
+      email: email.toLowerCase().trim(),
+      code,
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
+    };
+
     const { error: dbError } = await supabaseAdmin
       .from('verification_codes')
-      .insert({
-        email: email.toLowerCase().trim(),
-        code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
-      });
+      .insert(insertData);
 
     if (dbError) {
       console.error('Error storing verification code:', dbError);
