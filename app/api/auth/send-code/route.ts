@@ -45,35 +45,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send email using Supabase Auth email
-    // We'll use Supabase's built-in email sending, but customize the template
-    // For now, we'll use a simple approach: send via Supabase Auth with custom message
-    const { error: emailError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email.toLowerCase().trim(),
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login?code=${code}&email=${encodeURIComponent(email)}`,
-      },
-    });
+    // Send email with verification code using Resend
+    if (resend && process.env.RESEND_FROM_EMAIL) {
+      try {
+        const { error: emailError } = await resend.emails.send({
+          from: process.env.RESEND_FROM_EMAIL,
+          to: email.toLowerCase().trim(),
+          subject: 'InsightBox 驗證碼 / Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #8B6F47;">InsightBox 驗證碼</h2>
+              <p>您的驗證碼是：</p>
+              <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #8B6F47; border-radius: 8px; margin: 20px 0;">
+                ${code}
+              </div>
+              <p style="color: #666; font-size: 14px;">此驗證碼將在 10 分鐘後過期。</p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+              <h2 style="color: #8B6F47;">InsightBox Verification Code</h2>
+              <p>Your verification code is:</p>
+              <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #8B6F47; border-radius: 8px; margin: 20px 0;">
+                ${code}
+              </div>
+              <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+            </div>
+          `,
+          text: `InsightBox 驗證碼 / Verification Code: ${code}\n\n此驗證碼將在 10 分鐘後過期 / This code will expire in 10 minutes.`,
+        });
 
-    // Actually, we need to send a custom email. Let's use Supabase's email function or a service
-    // For now, let's create a custom email sending solution
-    // We'll use the Supabase Admin API to send a custom email
-    
-    // Note: Supabase doesn't have a direct API to send custom emails
-    // We need to use a third-party service or configure Supabase email templates
-    // For now, let's use a workaround: store the code and let the user know it was sent
-    // In production, you should use SendGrid, Resend, or similar service
-
-    // TODO: Implement actual email sending using a service like Resend, SendGrid, etc.
-    // For now, we'll return success and the code (for development/testing)
-    // In production, remove the code from the response
+        if (emailError) {
+          console.error('Error sending email via Resend:', emailError);
+          // Fallback to console log in development
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔐 Verification code (dev only):', code);
+          }
+        }
+      } catch (emailErr) {
+        console.error('Error sending email:', emailErr);
+        // Continue even if email fails - code is stored in DB
+      }
+    } else {
+      // No Resend configured, log code in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔐 Verification code (dev only - Resend not configured):', code);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Verification code sent',
-      // Remove this in production - only for development
-      ...(process.env.NODE_ENV === 'development' && { code }),
+      // In development, return code for testing if Resend is not configured
+      ...(process.env.NODE_ENV === 'development' && !resend && { code }),
     });
   } catch (error: any) {
     console.error('Error in send-code:', error);
