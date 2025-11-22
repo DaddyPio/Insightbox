@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       }
       
       console.error('❌ Code verification failed:', {
-        findError,
+        manualFindError,
         hasCodeData: !!validCodeData,
         allCodesCount: allCodes?.length || 0,
         errorMessage,
