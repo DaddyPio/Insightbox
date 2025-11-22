@@ -170,11 +170,11 @@ export async function POST(request: NextRequest) {
 
     // Get or create user in Supabase Auth
     console.log('👤 Getting or creating user for email:', normalizedEmail);
-    const { data: usersList, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    const { data: usersList, error: usersListError } = await supabaseAdmin.auth.admin.listUsers();
     
-    if (listError) {
-      console.error('❌ Error listing users:', listError);
-      throw new Error('Failed to check user existence: ' + listError.message);
+    if (usersListError) {
+      console.error('❌ Error listing users:', usersListError);
+      throw new Error('Failed to check user existence: ' + usersListError.message);
     }
     
     let userId: string;
