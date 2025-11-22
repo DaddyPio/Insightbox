@@ -16,15 +16,19 @@ CREATE INDEX IF NOT EXISTS idx_verification_codes_expires ON verification_codes(
 ALTER TABLE verification_codes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Allow anyone to insert verification codes (for signup/login)
+-- Drop existing policy if it exists, then create new one
+DROP POLICY IF EXISTS "Allow insert verification codes" ON verification_codes;
 CREATE POLICY "Allow insert verification codes" ON verification_codes
   FOR INSERT
   WITH CHECK (true);
 
 -- Policy: Allow anyone to read and update their own verification codes
+DROP POLICY IF EXISTS "Allow read own verification codes" ON verification_codes;
 CREATE POLICY "Allow read own verification codes" ON verification_codes
   FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Allow update own verification codes" ON verification_codes;
 CREATE POLICY "Allow update own verification codes" ON verification_codes
   FOR UPDATE
   USING (true);
