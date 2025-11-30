@@ -86,6 +86,16 @@ export default function Navigation() {
               >
                 {t.navDaily}
               </Link>
+              <Link 
+                href="/vocab/bank" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname?.startsWith('/vocab') 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                Vocabulary
+              </Link>
               {/* Weekly Review temporarily hidden */}
               {/* <Link 
                 href="/weekly" 
@@ -201,6 +211,17 @@ export default function Navigation() {
                 }`}
               >
                 {t.navDaily}
+              </Link>
+              <Link 
+                href="/vocab/bank"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname?.startsWith('/vocab') 
+                    ? 'text-wood-900 bg-wood-200' 
+                    : 'text-wood-700 hover:text-wood-900 hover:bg-wood-200'
+                }`}
+              >
+                Vocabulary
               </Link>
               <Link 
                 href="/create" 
