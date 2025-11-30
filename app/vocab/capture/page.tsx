@@ -56,7 +56,10 @@ export default function CapturePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🚀 handleSubmit START - isAuthenticated:', isAuthenticated);
+    
     if (!isAuthenticated) {
+      console.warn('⚠️ User not authenticated, showing error');
       setError('Please log in to save words');
       return;
     }
@@ -65,22 +68,26 @@ export default function CapturePage() {
     setError(null);
 
     try {
-      console.log('🚀 handleSubmit called, isAuthenticated:', isAuthenticated);
-      
       // Get token explicitly
+      console.log('🔍 Getting session...');
       const { data: { session }, error: sessionError } = await supabaseBrowser.auth.getSession();
+      
       if (sessionError) {
         console.error('❌ Error getting session:', sessionError);
-        throw new Error('Failed to get session');
+        setError('Failed to get session. Please try logging in again.');
+        return;
       }
       
       const token = session?.access_token;
       console.log('🔐 Token check:', {
+        hasSession: !!session,
         hasToken: !!token,
-        tokenLength: token?.length,
+        tokenLength: token?.length || 0,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
       });
 
       if (!token) {
+        console.error('❌ No token found in session');
         setError('Please log in to save words');
         return;
       }
@@ -88,9 +95,12 @@ export default function CapturePage() {
       let uploadedAudioUrl = null;
       if (audioFile) {
         console.log('📤 Uploading audio file...');
-        // Manually handle upload with token
         const formData = new FormData();
         formData.append('file', audioFile);
+        
+        console.log('📤 Upload request headers:', {
+          'Authorization': `Bearer ${token.substring(0, 20)}...`,
+        });
         
         const uploadResponse = await fetch('/api/vocab/upload', {
           method: 'POST',
@@ -98,6 +108,11 @@ export default function CapturePage() {
             'Authorization': `Bearer ${token}`,
           },
           body: formData,
+        });
+        
+        console.log('📥 Upload response:', {
+          status: uploadResponse.status,
+          ok: uploadResponse.ok,
         });
         
         if (!uploadResponse.ok) {
@@ -111,29 +126,42 @@ export default function CapturePage() {
         console.log('✅ Audio uploaded:', uploadedAudioUrl);
       }
 
-      console.log('📤 Calling /api/vocab/words...');
+      const requestBody = {
+        sound_like: soundLike.trim(),
+        context_sentence: contextSentence.trim(),
+        audio_url: uploadedAudioUrl,
+      };
+      
+      console.log('📤 Calling /api/vocab/words with:', {
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token.substring(0, 20)}...`,
+        },
+      });
+      
       const response = await fetch('/api/vocab/words', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          sound_like: soundLike.trim(),
-          context_sentence: contextSentence.trim(),
-          audio_url: uploadedAudioUrl,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log('📥 Response received:', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries()),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        console.error('❌ Response not OK:', data);
+        console.error('❌ Response not OK:', {
+          status: response.status,
+          data,
+        });
         if (response.status === 401) {
           setError('Please log in to save words');
           return;
@@ -145,10 +173,15 @@ export default function CapturePage() {
       console.log('✅ Word saved successfully:', data);
       router.push('/vocab/bank');
     } catch (err: any) {
-      console.error('❌ Exception in handleSubmit:', err);
+      console.error('❌ Exception in handleSubmit:', {
+        error: err,
+        message: err.message,
+        stack: err.stack,
+      });
       setError(err.message || 'Failed to save word');
     } finally {
       setLoading(false);
+      console.log('🏁 handleSubmit END');
     }
   };
 
