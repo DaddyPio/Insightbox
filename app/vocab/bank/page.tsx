@@ -106,12 +106,20 @@ export default function BankPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-[#8B6F47]">Vocabulary Bank</h1>
-          <button
-            onClick={() => router.push('/vocab/capture')}
-            className="px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
-          >
-            + New Word
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push('/vocab/review')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Review
+            </button>
+            <button
+              onClick={() => router.push('/vocab/capture')}
+              className="px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
+            >
+              + New Word
+            </button>
+          </div>
         </div>
 
         {/* Search and filters */}
