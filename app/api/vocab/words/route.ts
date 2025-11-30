@@ -76,15 +76,25 @@ export async function GET(request: NextRequest) {
 // POST /api/vocab/words - Create new word
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('authorization');
+    console.log('🔐 POST /api/vocab/words - Auth header present:', !!authHeader);
+    
     const supabase = supabaseFromRequest(request);
     if (!supabase) {
+      console.error('❌ Failed to create Supabase client');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error('❌ Error getting user:', userError);
+    }
     if (!user) {
+      console.error('❌ No user found in session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    console.log('✅ User authenticated:', user.email);
 
     const body = await request.json();
     const {
