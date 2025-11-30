@@ -150,7 +150,7 @@ export default function ReviewPage() {
           {currentWord.my_work_sentence && (
             <div>
               <h2 className="text-sm font-medium text-gray-700 mb-2">My Work Sentence</h2>
-              <p className="text-gray-900 italic">"{currentWord.my_work_sentence}"</p>
+              <p className="text-gray-900 italic">&quot;{currentWord.my_work_sentence}&quot;</p>
             </div>
           )}
 
@@ -168,7 +168,7 @@ export default function ReviewPage() {
               disabled={processing}
               className="w-full px-6 py-4 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
             >
-              ✗ Don't Know
+              ✗ Don&apos;t Know
             </button>
             <button
               onClick={() => handleReview('master')}

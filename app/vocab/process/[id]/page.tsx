@@ -41,10 +41,6 @@ export default function ProcessPage() {
     tags: '',
   });
 
-  useEffect(() => {
-    fetchWord();
-  }, [id]);
-
   const fetchWord = async () => {
     try {
       const response = await fetch(`/api/vocab/words/${id}`);
@@ -70,6 +66,11 @@ export default function ProcessPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchWord();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const calculateNextReviewDate = (stage: number): string => {
     const today = new Date();
@@ -145,7 +146,7 @@ export default function ProcessPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-[#8B6F47] mb-2">Process Word</h1>
         {word.sound_like && (
-          <p className="text-gray-600 mb-6">Sound-like: "{word.sound_like}"</p>
+          <p className="text-gray-600 mb-6">Sound-like: &quot;{word.sound_like}&quot;</p>
         )}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">

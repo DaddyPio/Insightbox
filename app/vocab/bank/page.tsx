@@ -27,10 +27,6 @@ export default function BankPage() {
     fetchWords();
   }, []);
 
-  useEffect(() => {
-    filterWords();
-  }, [words, search, statusFilter, tagFilter]);
-
   const fetchWords = async () => {
     try {
       let url = '/api/vocab/words';
@@ -52,7 +48,7 @@ export default function BankPage() {
     }
   };
 
-  const filterWords = () => {
+  useEffect(() => {
     let filtered = [...words];
 
     if (search) {
@@ -68,7 +64,7 @@ export default function BankPage() {
     }
 
     setFilteredWords(filtered);
-  };
+  }, [words, search, statusFilter, tagFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -203,7 +199,7 @@ export default function BankPage() {
                       {word.correct_word || word.sound_like || 'Untitled'}
                     </h3>
                     {word.sound_like && word.correct_word && (
-                      <p className="text-sm text-gray-500 italic">"{word.sound_like}"</p>
+                      <p className="text-sm text-gray-500 italic">&quot;{word.sound_like}&quot;</p>
                     )}
                   </div>
                   <span
