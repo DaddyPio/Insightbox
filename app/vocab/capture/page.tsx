@@ -95,6 +95,14 @@ export default function CapturePage() {
       }
 
       console.log('📤 Calling authFetch for /api/vocab/words...');
+      console.log('📤 authFetch function:', typeof authFetch, authFetch);
+      
+      // Double-check authFetch is available
+      if (typeof authFetch !== 'function') {
+        console.error('❌ authFetch is not a function!', authFetch);
+        throw new Error('authFetch is not available');
+      }
+      
       const response = await authFetch('/api/vocab/words', {
         method: 'POST',
         headers: {
