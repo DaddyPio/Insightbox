@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authFetch } from '@/lib/utils/authFetch';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export default function CapturePage() {
@@ -50,27 +49,8 @@ export default function CapturePage() {
   };
 
   const handleUpload = async () => {
-    if (!audioFile) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('file', audioFile);
-
-      const response = await authFetch('/api/vocab/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload audio');
-      }
-
-      const data = await response.json();
-      return data.url;
-    } catch (err) {
-      console.error('Upload error:', err);
-      throw err;
-    }
+    // This function is now inlined in handleSubmit
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,26 +67,56 @@ export default function CapturePage() {
     try {
       console.log('🚀 handleSubmit called, isAuthenticated:', isAuthenticated);
       
+      // Get token explicitly
+      const { data: { session }, error: sessionError } = await supabaseBrowser.auth.getSession();
+      if (sessionError) {
+        console.error('❌ Error getting session:', sessionError);
+        throw new Error('Failed to get session');
+      }
+      
+      const token = session?.access_token;
+      console.log('🔐 Token check:', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+      });
+
+      if (!token) {
+        setError('Please log in to save words');
+        return;
+      }
+
       let uploadedAudioUrl = null;
       if (audioFile) {
         console.log('📤 Uploading audio file...');
-        uploadedAudioUrl = await handleUpload();
+        // Manually handle upload with token
+        const formData = new FormData();
+        formData.append('file', audioFile);
+        
+        const uploadResponse = await fetch('/api/vocab/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          console.error('❌ Upload failed:', errorData);
+          throw new Error('Failed to upload audio');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        uploadedAudioUrl = uploadData.url;
         console.log('✅ Audio uploaded:', uploadedAudioUrl);
       }
 
-      console.log('📤 Calling authFetch for /api/vocab/words...');
-      console.log('📤 authFetch function:', typeof authFetch, authFetch);
-      
-      // Double-check authFetch is available
-      if (typeof authFetch !== 'function') {
-        console.error('❌ authFetch is not a function!', authFetch);
-        throw new Error('authFetch is not available');
-      }
-      
-      const response = await authFetch('/api/vocab/words', {
+      console.log('📤 Calling /api/vocab/words...');
+      const response = await fetch('/api/vocab/words', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           sound_like: soundLike.trim(),
