@@ -71,8 +71,12 @@ export default function PWARegister() {
 
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
+            updateViaCache: 'none', // Always check for updates
           });
           console.log('✅ Service Worker registered:', registration.scope);
+          
+          // Force update check
+          registration.update();
           
           // Wait for service worker to be ready (longer on mobile)
           const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

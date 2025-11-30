@@ -1,6 +1,7 @@
 // Service Worker for InsightBox PWA
-const CACHE_NAME = 'insightbox-v1';
-const RUNTIME_CACHE = 'insightbox-runtime-v1';
+// Updated version to force cache refresh for vocabulary features
+const CACHE_NAME = 'insightbox-v2';
+const RUNTIME_CACHE = 'insightbox-runtime-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
