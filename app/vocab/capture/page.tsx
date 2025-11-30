@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
+import SpeechToTextButton from '@/components/SpeechToTextButton';
 
 export default function CapturePage() {
   const router = useRouter();
@@ -220,9 +221,15 @@ export default function CapturePage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
           {/* Sound-like spelling */}
           <div>
-            <label htmlFor="sound_like" className="block text-sm font-medium text-gray-700 mb-2">
-              Sound-like Spelling
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="sound_like" className="block text-sm font-medium text-gray-700">
+                Sound-like Spelling
+              </label>
+              <SpeechToTextButton
+                onTranscription={(text) => setSoundLike(text)}
+                disabled={loading}
+              />
+            </div>
             <textarea
               id="sound_like"
               value={soundLike}
@@ -236,9 +243,15 @@ export default function CapturePage() {
 
           {/* Context sentence */}
           <div>
-            <label htmlFor="context" className="block text-sm font-medium text-gray-700 mb-2">
-              Context Sentence
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="context" className="block text-sm font-medium text-gray-700">
+                Context Sentence
+              </label>
+              <SpeechToTextButton
+                onTranscription={(text) => setContextSentence(text)}
+                disabled={loading}
+              />
+            </div>
             <textarea
               id="context"
               value={contextSentence}

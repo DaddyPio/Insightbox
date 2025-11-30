@@ -31,6 +31,7 @@ export default function ProcessPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedInfo, setGeneratedInfo] = useState<any>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const [formData, setFormData] = useState({
     correct_word: '',
@@ -123,6 +124,38 @@ export default function ProcessPage() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handlePlayPronunciation = () => {
+    const wordToPronounce = formData.correct_word || word?.correct_word || word?.sound_like;
+    if (!wordToPronounce) return;
+
+    // Stop any ongoing speech
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
+    setIsPlaying(true);
+
+    // Use Web Speech API to pronounce the word
+    const utterance = new SpeechSynthesisUtterance(wordToPronounce);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8; // Slightly slower for clarity
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    utterance.onend = () => {
+      setIsPlaying(false);
+    };
+
+    utterance.onerror = () => {
+      setIsPlaying(false);
+      setError('Failed to play pronunciation');
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -221,9 +254,25 @@ export default function ProcessPage() {
             <h3 className="font-semibold text-blue-900 mb-3">生成的單字資訊</h3>
             <div className="space-y-2 text-sm">
               {generatedInfo.pronunciation && (
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="font-medium">發音：</span>
                   <span className="text-gray-700">{generatedInfo.pronunciation}</span>
+                  <button
+                    type="button"
+                    onClick={handlePlayPronunciation}
+                    className="ml-2 p-1.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center"
+                    title="播放發音"
+                  >
+                    {isPlaying ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               )}
               {generatedInfo.chinese_translation && (
