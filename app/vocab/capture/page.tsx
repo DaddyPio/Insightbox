@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabase/client';
+// No need to import supabaseBrowser - using API routes instead
 
 export default function CapturePage() {
   const router = useRouter();

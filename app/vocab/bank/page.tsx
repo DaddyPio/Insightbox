@@ -25,6 +25,7 @@ export default function BankPage() {
 
   useEffect(() => {
     fetchWords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchWords = async () => {
