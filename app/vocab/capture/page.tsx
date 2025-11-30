@@ -85,11 +85,16 @@ export default function CapturePage() {
     setError(null);
 
     try {
+      console.log('🚀 handleSubmit called, isAuthenticated:', isAuthenticated);
+      
       let uploadedAudioUrl = null;
       if (audioFile) {
+        console.log('📤 Uploading audio file...');
         uploadedAudioUrl = await handleUpload();
+        console.log('✅ Audio uploaded:', uploadedAudioUrl);
       }
 
+      console.log('📤 Calling authFetch for /api/vocab/words...');
       const response = await authFetch('/api/vocab/words', {
         method: 'POST',
         headers: {
@@ -102,8 +107,15 @@ export default function CapturePage() {
         }),
       });
 
+      console.log('📥 Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
+
       if (!response.ok) {
         const data = await response.json();
+        console.error('❌ Response not OK:', data);
         if (response.status === 401) {
           setError('Please log in to save words');
           return;
@@ -112,8 +124,10 @@ export default function CapturePage() {
       }
 
       const data = await response.json();
+      console.log('✅ Word saved successfully:', data);
       router.push('/vocab/bank');
     } catch (err: any) {
+      console.error('❌ Exception in handleSubmit:', err);
       setError(err.message || 'Failed to save word');
     } finally {
       setLoading(false);
