@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authFetch } from '@/lib/utils/authFetch';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export default function CapturePage() {
   const router = useRouter();
@@ -12,6 +13,31 @@ export default function CapturePage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabaseBrowser.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (err) {
+        console.error('Error checking auth:', err);
+        setIsAuthenticated(false);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,6 +75,12 @@ export default function CapturePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      setError('Please log in to save words');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -72,6 +104,10 @@ export default function CapturePage() {
 
       if (!response.ok) {
         const data = await response.json();
+        if (response.status === 401) {
+          setError('Please log in to save words');
+          return;
+        }
         throw new Error(data.error || 'Failed to save word');
       }
 
@@ -83,6 +119,33 @@ export default function CapturePage() {
       setLoading(false);
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#F5F1EB] flex items-center justify-center">
+        <div className="text-[#8B6F47]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#F5F1EB] p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <h2 className="text-2xl font-bold text-[#8B6F47] mb-4">Login Required</h2>
+            <p className="text-gray-600 mb-6">Please log in to use the Vocabulary feature.</p>
+            <button
+              onClick={() => router.push('/login')}
+              className="px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F1EB] p-4">
