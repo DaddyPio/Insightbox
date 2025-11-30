@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/utils/authFetch';
 
 interface Word {
   id: string;
@@ -36,7 +37,7 @@ export default function BankPage() {
       if (tagFilter) params.append('tag', tagFilter);
       if (params.toString()) url += '?' + params.toString();
 
-      const response = await fetch(url);
+      const response = await authFetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch words');
       }

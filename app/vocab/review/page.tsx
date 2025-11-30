@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/utils/authFetch';
 
 interface Word {
   id: string;
@@ -27,7 +28,7 @@ export default function ReviewPage() {
   const fetchTodayWords = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const response = await fetch(`/api/vocab/words?next_review_date=${today}&status=reviewing`);
+      const response = await authFetch(`/api/vocab/words?next_review_date=${today}&status=reviewing`);
       if (!response.ok) {
         throw new Error('Failed to fetch words');
       }
@@ -47,7 +48,7 @@ export default function ReviewPage() {
     const currentWord = words[currentIndex];
 
     try {
-      const response = await fetch(`/api/vocab/words/${currentWord.id}/review`, {
+      const response = await authFetch(`/api/vocab/words/${currentWord.id}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

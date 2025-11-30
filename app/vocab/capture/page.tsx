@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-// No need to import supabaseBrowser - using API routes instead
+import { authFetch } from '@/lib/utils/authFetch';
 
 export default function CapturePage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function CapturePage() {
       const formData = new FormData();
       formData.append('file', audioFile);
 
-      const response = await fetch('/api/vocab/upload', {
+      const response = await authFetch('/api/vocab/upload', {
         method: 'POST',
         body: formData,
       });
@@ -58,7 +58,7 @@ export default function CapturePage() {
         uploadedAudioUrl = await handleUpload();
       }
 
-      const response = await fetch('/api/vocab/words', {
+      const response = await authFetch('/api/vocab/words', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

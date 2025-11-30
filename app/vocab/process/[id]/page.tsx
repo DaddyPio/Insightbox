@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { authFetch } from '@/lib/utils/authFetch';
 
 interface Word {
   id: string;
@@ -43,7 +44,7 @@ export default function ProcessPage() {
 
   const fetchWord = async () => {
     try {
-      const response = await fetch(`/api/vocab/words/${id}`);
+      const response = await authFetch(`/api/vocab/words/${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch word');
       }
@@ -97,7 +98,7 @@ export default function ProcessPage() {
 
       const nextReviewDate = calculateNextReviewDate(0);
 
-      const response = await fetch(`/api/vocab/words/${id}`, {
+      const response = await authFetch(`/api/vocab/words/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
