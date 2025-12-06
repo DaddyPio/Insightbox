@@ -32,6 +32,8 @@ export default function ProcessPage() {
   const [error, setError] = useState<string | null>(null);
   const [generatedInfo, setGeneratedInfo] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
     correct_word: '',
@@ -87,6 +89,14 @@ export default function ProcessPage() {
             data.word.my_general_sentence,
           ].filter(Boolean),
         });
+      }
+      
+      // If word is already confirmed (status is 'reviewing' or 'mastered'), start in view mode
+      // Only allow editing if status is 'inbox' or 'processing'
+      if (data.word.status === 'reviewing' || data.word.status === 'mastered') {
+        setIsEditing(false);
+      } else {
+        setIsEditing(true); // Allow editing for new words
       }
     } catch (err: any) {
       setError(err.message);
@@ -208,7 +218,12 @@ export default function ProcessPage() {
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
 
-      const nextReviewDate = calculateNextReviewDate(0);
+      // If word is already confirmed, keep its current status and review date
+      // Otherwise, set to 'reviewing' with new review date
+      const isAlreadyConfirmed = word?.status === 'reviewing' || word?.status === 'mastered';
+      const nextReviewDate = isAlreadyConfirmed 
+        ? word?.next_review_date 
+        : calculateNextReviewDate(0);
 
       const response = await authFetch(`/api/vocab/words/${id}`, {
         method: 'PUT',
@@ -223,9 +238,10 @@ export default function ProcessPage() {
           // Ensure pronunciation and chinese_translation are saved (even if empty string, convert to null)
           pronunciation: formData.pronunciation?.trim() || null,
           chinese_translation: formData.chinese_translation?.trim() || null,
-          status: 'reviewing',
+          // Keep existing status if already confirmed, otherwise set to 'reviewing'
+          status: isAlreadyConfirmed ? word?.status : 'reviewing',
           next_review_date: nextReviewDate,
-          review_stage: 0,
+          review_stage: isAlreadyConfirmed ? word?.review_stage : 0,
         }),
       });
 
@@ -234,7 +250,15 @@ export default function ProcessPage() {
         throw new Error(data.error || 'Failed to save word');
       }
 
-      router.push('/vocab/bank');
+      // Update word state and exit edit mode
+      const updatedData = await response.json();
+      setWord(updatedData.word);
+      setIsEditing(false);
+      
+      // Only redirect if it was a new word (not editing existing)
+      if (!isAlreadyConfirmed) {
+        router.push('/vocab/bank');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to save word');
     } finally {
@@ -268,24 +292,26 @@ export default function ProcessPage() {
               <p className="text-gray-600">Sound-like: &quot;{word.sound_like}&quot;</p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={generating || !word}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {generating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Generating...</span>
-              </>
-            ) : (
-              <>
-                <span>✨</span>
-                <span>一鍵生成單字資訊</span>
-              </>
-            )}
-          </button>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={generating || !word}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {generating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <span>✨</span>
+                  <span>一鍵生成單字資訊</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {generatedInfo && (
@@ -351,7 +377,8 @@ export default function ProcessPage() {
               id="correct_word"
               value={formData.correct_word}
               onChange={(e) => setFormData({ ...formData, correct_word: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             />
           </div>
@@ -365,7 +392,8 @@ export default function ProcessPage() {
               id="definition"
               value={formData.definition}
               onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={3}
               required
             />
@@ -380,7 +408,8 @@ export default function ProcessPage() {
               id="part_of_speech"
               value={formData.part_of_speech}
               onChange={(e) => setFormData({ ...formData, part_of_speech: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Select...</option>
               <option value="noun">Noun</option>
@@ -403,7 +432,8 @@ export default function ProcessPage() {
               id="register"
               value={formData.register}
               onChange={(e) => setFormData({ ...formData, register: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Select...</option>
               <option value="formal">Formal</option>
@@ -423,7 +453,8 @@ export default function ProcessPage() {
               value={formData.collocations}
               onChange={(e) => setFormData({ ...formData, collocations: e.target.value })}
               placeholder="e.g., make a decision, take action"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -436,7 +467,8 @@ export default function ProcessPage() {
               id="context_sentence"
               value={formData.context_sentence}
               onChange={(e) => setFormData({ ...formData, context_sentence: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={3}
             />
           </div>
@@ -451,7 +483,8 @@ export default function ProcessPage() {
               value={formData.my_work_sentence}
               onChange={(e) => setFormData({ ...formData, my_work_sentence: e.target.value })}
               placeholder="Write a sentence using this word in a work context"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={3}
             />
           </div>
@@ -466,7 +499,8 @@ export default function ProcessPage() {
               value={formData.my_general_sentence}
               onChange={(e) => setFormData({ ...formData, my_general_sentence: e.target.value })}
               placeholder="Write a sentence using this word in a general context"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={3}
             />
           </div>
@@ -482,7 +516,8 @@ export default function ProcessPage() {
               value={formData.pronunciation}
               onChange={(e) => setFormData({ ...formData, pronunciation: e.target.value })}
               placeholder="e.g., /ˈmɒnəlɒɡ/"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -497,7 +532,8 @@ export default function ProcessPage() {
               value={formData.chinese_translation}
               onChange={(e) => setFormData({ ...formData, chinese_translation: e.target.value })}
               placeholder="中文翻譯"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -512,7 +548,8 @@ export default function ProcessPage() {
               value={formData.synonyms}
               onChange={(e) => setFormData({ ...formData, synonyms: e.target.value })}
               placeholder="e.g., synonym1, synonym2, synonym3"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -527,7 +564,8 @@ export default function ProcessPage() {
               value={formData.tags}
               onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
               placeholder="e.g., meeting, email, interview"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+              disabled={!isEditing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -539,20 +577,68 @@ export default function ProcessPage() {
 
           {/* Buttons */}
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !formData.correct_word.trim() || !formData.definition.trim()}
-              className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Saving...' : '確認'}
-            </button>
+            {!isEditing && (word?.status === 'reviewing' || word?.status === 'mastered') ? (
+              // View mode: Show "修改" and "回上一頁" buttons
+              <>
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  回上一頁
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
+                >
+                  修改
+                </button>
+              </>
+            ) : (
+              // Edit mode: Show "取消" and "確認儲存" buttons
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (word?.status === 'reviewing' || word?.status === 'mastered') {
+                      // If was in view mode, go back to view mode
+                      setIsEditing(false);
+                      // Reload form data from word
+                      if (word) {
+                        setFormData({
+                          correct_word: word.correct_word || word.sound_like || '',
+                          definition: word.definition || '',
+                          context_sentence: word.context_sentence || '',
+                          my_work_sentence: word.my_work_sentence || '',
+                          my_general_sentence: word.my_general_sentence || '',
+                          collocations: (word.collocations || []).join(', '),
+                          part_of_speech: word.part_of_speech || '',
+                          register: word.register || '',
+                          tags: (word.tags || []).join(', '),
+                          pronunciation: word.pronunciation || '',
+                          synonyms: (word.synonyms || []).join(', '),
+                          chinese_translation: word.chinese_translation || '',
+                        });
+                      }
+                    } else {
+                      // If was a new word, go back
+                      router.back();
+                    }
+                  }}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || !formData.correct_word.trim() || !formData.definition.trim()}
+                  className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? '儲存中...' : '確認儲存'}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>
