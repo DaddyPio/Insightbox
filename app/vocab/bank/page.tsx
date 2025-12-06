@@ -23,6 +23,7 @@ export default function BankPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [tagFilter, setTagFilter] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWords();
@@ -89,6 +90,33 @@ export default function BankPage() {
       word.tags?.forEach((tag) => tags.add(tag));
     });
     return Array.from(tags).sort();
+  };
+
+  const handleDelete = async (e: React.MouseEvent, wordId: string) => {
+    e.stopPropagation(); // Prevent card click event
+    
+    if (!confirm('Are you sure you want to delete this word?')) {
+      return;
+    }
+
+    setDeletingId(wordId);
+    try {
+      const response = await authFetch(`/api/vocab/words/${wordId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete word');
+      }
+
+      // Remove word from list
+      setWords(words.filter((word) => word.id !== wordId));
+    } catch (err) {
+      console.error('Error deleting word:', err);
+      alert('Failed to delete word. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -186,7 +214,7 @@ export default function BankPage() {
             filteredWords.map((word) => (
               <div
                 key={word.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer relative"
                 onClick={() => {
                   if (word.status === 'inbox') {
                     router.push(`/vocab/process/${word.id}`);
@@ -204,13 +232,31 @@ export default function BankPage() {
                       <p className="text-sm text-gray-500 italic">&quot;{word.sound_like}&quot;</p>
                     )}
                   </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      word.status
-                    )}`}
-                  >
-                    {word.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        word.status
+                      )}`}
+                    >
+                      {word.status}
+                    </span>
+                    <button
+                      onClick={(e) => handleDelete(e, word.id)}
+                      disabled={deletingId === word.id}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete word"
+                    >
+                      {deletingId === word.id ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {word.definition && (
