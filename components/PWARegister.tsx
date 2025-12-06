@@ -170,6 +170,7 @@ export default function PWARegister() {
     // Check if already installed first
     if (isInstalled) {
       console.log('ℹ️ App already installed, not showing prompt');
+      setShowInstallPrompt(false);
       return;
     }
 
@@ -179,11 +180,17 @@ export default function PWARegister() {
       const daysSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
       if (daysSinceDismissal < 30) {
         console.log('ℹ️ Install prompt was dismissed, not showing again');
+        setShowInstallPrompt(false);
         return;
       } else {
         // After 30 days, allow showing again
         localStorage.removeItem('pwa-install-dismissed');
       }
+    }
+
+    // Only show if service worker is registered and we haven't already shown it
+    if (!swRegistered || showInstallPrompt) {
+      return;
     }
 
     // Detect if mobile device
@@ -193,10 +200,12 @@ export default function PWARegister() {
     
     console.log(`ℹ️ Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, will show prompt after ${delay}ms`);
     
-    // Wait for service worker to register, then show prompt
+    // Wait for service worker to register, then show prompt (only once)
     const timer = setTimeout(() => {
-      console.log('ℹ️ Showing install prompt after delay');
-      if (!isInstalled) {
+      // Double-check conditions before showing
+      const stillDismissed = localStorage.getItem('pwa-install-dismissed');
+      if (!stillDismissed && !isInstalled && swRegistered) {
+        console.log('ℹ️ Showing install prompt after delay');
         setShowInstallPrompt(true);
       }
     }, delay);
@@ -204,7 +213,7 @@ export default function PWARegister() {
     return () => {
       clearTimeout(timer);
     };
-  }, [swRegistered, isInstalled, deferredPrompt]);
+  }, [swRegistered, isInstalled]); // Removed deferredPrompt and showInstallPrompt from dependencies
 
   const t = getTranslation(language);
 
@@ -290,9 +299,11 @@ export default function PWARegister() {
           <button
             onClick={() => {
               setShowInstallPrompt(false);
-              // Store dismissal in localStorage to not show again (permanently, or for 30 days)
+              // Store dismissal in localStorage to not show again (for 30 days)
               localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-              console.log('ℹ️ User dismissed install prompt, will not show again');
+              console.log('ℹ️ User dismissed install prompt, will not show again for 30 days');
+              // Clear deferred prompt to prevent it from showing again
+              setDeferredPrompt(null);
             }}
             className="px-4 py-2 text-sm text-wood-200 hover:text-white border border-wood-600 rounded transition-colors"
           >
