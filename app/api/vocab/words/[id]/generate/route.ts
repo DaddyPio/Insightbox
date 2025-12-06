@@ -115,6 +115,9 @@ Return ONLY valid JSON, no additional text.`;
       part_of_speech: wordInfo.part_of_speech || word.part_of_speech,
       collocations: wordInfo.collocations || word.collocations || [],
       register: wordInfo.register || word.register,
+      pronunciation: wordInfo.pronunciation || word.pronunciation,
+      synonyms: wordInfo.synonyms || word.synonyms || [],
+      chinese_translation: wordInfo.chinese_translation || word.chinese_translation,
     };
 
     // If correct_word is not set, set it

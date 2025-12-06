@@ -43,6 +43,9 @@ export default function ProcessPage() {
     part_of_speech: '',
     register: '',
     tags: '',
+    pronunciation: '',
+    synonyms: '',
+    chinese_translation: '',
   });
 
   const fetchWord = async () => {
@@ -65,6 +68,9 @@ export default function ProcessPage() {
         part_of_speech: data.word.part_of_speech || '',
         register: data.word.register || '',
         tags: (data.word.tags || []).join(', '),
+        pronunciation: data.word.pronunciation || '',
+        synonyms: (data.word.synonyms || []).join(', '),
+        chinese_translation: data.word.chinese_translation || '',
       });
     } catch (err: any) {
       setError(err.message);
@@ -117,6 +123,9 @@ export default function ProcessPage() {
         context_sentence: data.word.context_sentence || formData.context_sentence,
         my_work_sentence: data.word.my_work_sentence || formData.my_work_sentence,
         my_general_sentence: data.word.my_general_sentence || formData.my_general_sentence,
+        pronunciation: data.wordInfo.pronunciation || formData.pronunciation,
+        synonyms: (data.wordInfo.synonyms || []).join(', ') || formData.synonyms,
+        chinese_translation: data.wordInfo.chinese_translation || formData.chinese_translation,
       });
 
       // Update word state
@@ -174,6 +183,10 @@ export default function ProcessPage() {
         .split(',')
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
+      const synonymsArray = formData.synonyms
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 
       const nextReviewDate = calculateNextReviewDate(0);
 
@@ -186,6 +199,9 @@ export default function ProcessPage() {
           ...formData,
           collocations: collocationsArray,
           tags: tagsArray,
+          synonyms: synonymsArray,
+          pronunciation: formData.pronunciation || null,
+          chinese_translation: formData.chinese_translation || null,
           status: 'reviewing',
           next_review_date: nextReviewDate,
           review_stage: 0,
@@ -431,6 +447,51 @@ export default function ProcessPage() {
               placeholder="Write a sentence using this word in a general context"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent resize-none"
               rows={3}
+            />
+          </div>
+
+          {/* Pronunciation */}
+          <div>
+            <label htmlFor="pronunciation" className="block text-sm font-medium text-gray-700 mb-2">
+              Pronunciation (IPA)
+            </label>
+            <input
+              type="text"
+              id="pronunciation"
+              value={formData.pronunciation}
+              onChange={(e) => setFormData({ ...formData, pronunciation: e.target.value })}
+              placeholder="e.g., /ˈmɒnəlɒɡ/"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+            />
+          </div>
+
+          {/* Chinese Translation */}
+          <div>
+            <label htmlFor="chinese_translation" className="block text-sm font-medium text-gray-700 mb-2">
+              中文翻譯
+            </label>
+            <input
+              type="text"
+              id="chinese_translation"
+              value={formData.chinese_translation}
+              onChange={(e) => setFormData({ ...formData, chinese_translation: e.target.value })}
+              placeholder="中文翻譯"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
+            />
+          </div>
+
+          {/* Synonyms */}
+          <div>
+            <label htmlFor="synonyms" className="block text-sm font-medium text-gray-700 mb-2">
+              Synonyms (comma-separated)
+            </label>
+            <input
+              type="text"
+              id="synonyms"
+              value={formData.synonyms}
+              onChange={(e) => setFormData({ ...formData, synonyms: e.target.value })}
+              placeholder="e.g., synonym1, synonym2, synonym3"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B6F47] focus:border-transparent"
             />
           </div>
 

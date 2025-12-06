@@ -76,6 +76,9 @@ export async function PUT(
       status,
       next_review_date,
       review_stage,
+      pronunciation,
+      synonyms,
+      chinese_translation,
     } = body;
 
     // Build update object
@@ -94,6 +97,9 @@ export async function PUT(
     if (status !== undefined) updateData.status = status;
     if (next_review_date !== undefined) updateData.next_review_date = next_review_date;
     if (review_stage !== undefined) updateData.review_stage = review_stage;
+    if (pronunciation !== undefined) updateData.pronunciation = pronunciation;
+    if (synonyms !== undefined) updateData.synonyms = synonyms;
+    if (chinese_translation !== undefined) updateData.chinese_translation = chinese_translation;
 
     const { data: word, error } = await supabase
       .from('vocab_words')
