@@ -128,7 +128,7 @@ export default function ProcessPage() {
       const data = await response.json();
       setGeneratedInfo(data.wordInfo);
 
-      // Auto-fill form with generated data
+      // Auto-fill form with generated data (always use generated data if available)
       setFormData({
         ...formData,
         correct_word: data.word.correct_word || formData.correct_word,
@@ -139,10 +139,14 @@ export default function ProcessPage() {
         context_sentence: data.word.context_sentence || formData.context_sentence,
         my_work_sentence: data.word.my_work_sentence || formData.my_work_sentence,
         my_general_sentence: data.word.my_general_sentence || formData.my_general_sentence,
+        // Always use generated info if available, otherwise keep existing
         pronunciation: data.wordInfo.pronunciation || formData.pronunciation,
         synonyms: (data.wordInfo.synonyms || []).join(', ') || formData.synonyms,
         chinese_translation: data.wordInfo.chinese_translation || formData.chinese_translation,
       });
+      
+      // Update word state to reflect saved data
+      setWord(data.word);
 
       // Update word state
       setWord(data.word);
