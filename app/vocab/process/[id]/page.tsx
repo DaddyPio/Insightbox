@@ -72,6 +72,22 @@ export default function ProcessPage() {
         synonyms: (data.word.synonyms || []).join(', '),
         chinese_translation: data.word.chinese_translation || '',
       });
+      
+      // If word has generated info (pronunciation, synonyms, or chinese_translation), 
+      // set generatedInfo to display it
+      if (data.word.pronunciation || data.word.synonyms?.length > 0 || data.word.chinese_translation) {
+        setGeneratedInfo({
+          pronunciation: data.word.pronunciation,
+          synonyms: data.word.synonyms || [],
+          chinese_translation: data.word.chinese_translation,
+          // Note: example_sentences are not stored separately, they're in context_sentence, my_work_sentence, etc.
+          example_sentences: [
+            data.word.context_sentence,
+            data.word.my_work_sentence,
+            data.word.my_general_sentence,
+          ].filter(Boolean),
+        });
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
