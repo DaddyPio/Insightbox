@@ -582,21 +582,21 @@ export default function ProcessPage() {
           {/* Buttons */}
           <div className="flex gap-4">
             {!isEditing && (word?.status === 'reviewing' || word?.status === 'mastered') ? (
-              // View mode: Show "修改" and "回上一頁" buttons
+              // View mode: Show "編輯" and "回主畫面" buttons
               <>
                 <button
                   type="button"
-                  onClick={() => router.back()}
+                  onClick={() => router.push('/vocab/bank')}
                   className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  回上一頁
+                  回主畫面
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
                   className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
                 >
-                  修改
+                  編輯
                 </button>
               </>
             ) : (
