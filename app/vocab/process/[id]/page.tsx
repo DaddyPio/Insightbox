@@ -33,7 +33,6 @@ export default function ProcessPage() {
   const [generatedInfo, setGeneratedInfo] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
     correct_word: '',
