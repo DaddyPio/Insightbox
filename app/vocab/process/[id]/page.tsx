@@ -469,7 +469,7 @@ export default function ProcessPage() {
               disabled={saving || !formData.correct_word.trim() || !formData.definition.trim()}
               className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving...' : 'Start Reviewing'}
+              {saving ? 'Saving...' : '確認'}
             </button>
           </div>
         </form>
