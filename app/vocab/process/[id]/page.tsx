@@ -18,6 +18,11 @@ interface Word {
   tags: string[];
   audio_url: string;
   status: string;
+  pronunciation?: string;
+  synonyms?: string[];
+  chinese_translation?: string;
+  next_review_date?: string | null;
+  review_stage?: number;
 }
 
 export default function ProcessPage() {
