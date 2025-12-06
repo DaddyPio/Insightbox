@@ -53,8 +53,10 @@ export default function ProcessPage() {
       }
       const data = await response.json();
       setWord(data.word);
+      // Auto-fill correct_word with sound_like if correct_word is empty
+      const initialCorrectWord = data.word.correct_word || data.word.sound_like || '';
       setFormData({
-        correct_word: data.word.correct_word || '',
+        correct_word: initialCorrectWord,
         definition: data.word.definition || '',
         context_sentence: data.word.context_sentence || '',
         my_work_sentence: data.word.my_work_sentence || '',
