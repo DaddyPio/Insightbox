@@ -220,8 +220,9 @@ export default function ProcessPage() {
           collocations: collocationsArray,
           tags: tagsArray,
           synonyms: synonymsArray,
-          pronunciation: formData.pronunciation || null,
-          chinese_translation: formData.chinese_translation || null,
+          // Ensure pronunciation and chinese_translation are saved (even if empty string, convert to null)
+          pronunciation: formData.pronunciation?.trim() || null,
+          chinese_translation: formData.chinese_translation?.trim() || null,
           status: 'reviewing',
           next_review_date: nextReviewDate,
           review_stage: 0,
