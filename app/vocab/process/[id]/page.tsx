@@ -593,7 +593,10 @@ export default function ProcessPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    console.log('編輯按鈕被點擊，設置 isEditing 為 true');
+                    setIsEditing(true);
+                  }}
                   className="flex-1 px-6 py-3 bg-[#8B6F47] text-white rounded-lg hover:bg-[#7A5F3A] transition-colors"
                 >
                   編輯
